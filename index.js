@@ -8,17 +8,49 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.use("/", (req, res, next) => {
-  // Catch API calls and let them pass through
-  if (req.path.startsWith("/api")) {
-    return next();
+// ABSOLUTE TOP PRIORITY: Serve PDFs explicitly to avoid ANY middleware interference (204 fix)
+// 1.5. ULTIMATE BYPASS: Serve PDF data via POST request in JSON format
+// IDM and other extensions almost never intercept POST requests returning JSON
+app.post("/api/pdf-data", (req, res) => {
+  const { filename } = req.body;
+  if (!filename) return res.status(400).json({ error: "Missing filename" });
+
+  const filePath = path.join(__dirname, "data", "files", filename);
+  if (!fs.existsSync(filePath)) return res.status(404).json({ error: "File not found" });
+
+  try {
+    const fileBuffer = fs.readFileSync(filePath);
+    const base64Data = fileBuffer.toString('base64');
+    
+    console.log(`[ULTIMATE BYPASS] Sent ${filename} as Base64 JSON (${fileBuffer.length} bytes)`);
+    
+    res.json({
+      success: true,
+      filename: filename,
+      data: base64Data,
+      contentType: 'application/pdf'
+    });
+  } catch (error) {
+    console.error("Error reading file for base64:", error);
+    res.status(500).json({ error: "Failed to process PDF data" });
   }
-
-  const dynamicFolderPath = path.join(__dirname, "client");
-
-  // Use express.static to serve files from the dynamically determined folder
-  return express.static(dynamicFolderPath)(req, res, next);
 });
+
+// Original route remains for direct downloads if needed
+app.get("/files/:filename", (req, res) => {
+  const filePath = path.join(__dirname, "data", "files", req.params.filename);
+  if (!fs.existsSync(filePath)) return res.status(404).send("Not found");
+  res.sendFile(filePath);
+});
+
+// 2. Second Priority: API routes
+app.use("/api", (req, res, next) => {
+  next();
+});
+
+
+// 3. Third Priority: Client static files
+app.use(express.static(path.join(__dirname, "client")));
 
 // Configure Multer for PDF uploads
 const multer = require("multer");
@@ -48,15 +80,18 @@ const upload = multer({
 const dbPath = path.join(__dirname, "data", "db", "delta_db.json");
 const trashPath = path.join(__dirname, "data", "db", "delta_trash.json");
 
-// Serve uploaded files
-app.use("/files", express.static(path.join(__dirname, "data", "files")));
+// (Moved up for priority)
 
 // API Endpoint: Get Data
 app.get("/api/data", (req, res) => {
   try {
-    const clientsDB = fs.existsSync(dbPath) ? JSON.parse(fs.readFileSync(dbPath, "utf-8")) : [];
-    const trashDB = fs.existsSync(trashPath) ? JSON.parse(fs.readFileSync(trashPath, "utf-8")) : [];
-    
+    const clientsDB = fs.existsSync(dbPath)
+      ? JSON.parse(fs.readFileSync(dbPath, "utf-8"))
+      : [];
+    const trashDB = fs.existsSync(trashPath)
+      ? JSON.parse(fs.readFileSync(trashPath, "utf-8"))
+      : [];
+
     res.json({ clientsDB, trashDB });
   } catch (error) {
     console.error("Error reading db files:", error);
@@ -71,7 +106,9 @@ app.post("/api/data", (req, res) => {
 
     // Optional: add some basic validation here if needed
     if (!Array.isArray(clientsDB) || !Array.isArray(trashDB)) {
-       return res.status(400).json({ error: "Invalid data format. Expected arrays." });
+      return res
+        .status(400)
+        .json({ error: "Invalid data format. Expected arrays." });
     }
 
     fs.writeFileSync(dbPath, JSON.stringify(clientsDB, null, 2));
@@ -94,7 +131,9 @@ app.post("/api/upload-pdf", upload.single("pdf"), (req, res) => {
       return res.status(400).json({ error: "Missing file or clientId" });
     }
 
-    const clientsDB = fs.existsSync(dbPath) ? JSON.parse(fs.readFileSync(dbPath, "utf-8")) : [];
+    const clientsDB = fs.existsSync(dbPath)
+      ? JSON.parse(fs.readFileSync(dbPath, "utf-8"))
+      : [];
     const client = clientsDB.find((c) => c.id === clientId);
 
     if (!client) {
@@ -129,7 +168,9 @@ app.delete("/api/delete-pdf", (req, res) => {
       return res.status(400).json({ error: "Missing clientId or filename" });
     }
 
-    const clientsDB = fs.existsSync(dbPath) ? JSON.parse(fs.readFileSync(dbPath, "utf-8")) : [];
+    const clientsDB = fs.existsSync(dbPath)
+      ? JSON.parse(fs.readFileSync(dbPath, "utf-8"))
+      : [];
     const client = clientsDB.find((c) => c.id === clientId);
 
     if (!client || !client.pdfs) {

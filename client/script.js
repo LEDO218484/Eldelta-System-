@@ -287,7 +287,7 @@ function renderClientPDFs() {
           <td class="p-3 text-gray-500 text-xs">${p.date}</td>
           <td class="p-3 text-center">
             <div class="flex gap-2 justify-center">
-              <button onclick="previewPDF('${p.path}', '${p.originalName}')" class="bg-blue-50 text-blue-600 dark:bg-blue-900/30 px-3 py-1 rounded-lg font-bold hover:bg-blue-500 hover:text-white transition flex items-center gap-1">
+              <button onclick="previewUploadedPDF('${p.filename}', '${p.originalName}')" class="bg-blue-50 text-blue-600 dark:bg-blue-900/30 px-3 py-1 rounded-lg font-bold hover:bg-blue-500 hover:text-white transition flex items-center gap-1">
                 <i class="fas fa-eye"></i> معاينة
               </button>
               <button onclick="downloadPDF('${p.path}', '${p.originalName}')" class="bg-green-50 text-green-600 dark:bg-green-900/30 px-3 py-1 rounded-lg font-bold hover:bg-green-500 hover:text-white transition flex items-center gap-1">
@@ -306,52 +306,158 @@ function renderClientPDFs() {
 
 /**
  * ==========================================
- * PDF ACTIONS (PREVIEW, DOWNLOAD, DELETE)
+ * PDF ACTIONS (PREVIEW, GENERATE, DOWNLOAD, DELETE)
  * ==========================================
  */
 
-/**
- * ==========================================
- * PDF ACTIONS (PREVIEW, DOWNLOAD, DELETE)
- * ==========================================
- */
+function previewUploadedPDF(url, title) {
+  openPDFPreview(title, url);
+}
 
-function previewPDF(url, title) {
-  const modal = document.getElementById("pdfPreviewModal");
-  const container = document.getElementById("embedpdf-container");
-  const loading = document.getElementById("pdfLoading");
-  const titleEl = document.getElementById("pdfPreviewTitle");
+async function openPDFPreview(title, dataOrUrl) {
+  document.getElementById("pdfPreviewTitle").innerText = title;
+  const container = document.getElementById("pdfViewerContainer");
+  
+  // Show loading state
+  container.innerHTML = `
+    <div id="pdf-loader" class="flex flex-col items-center justify-center text-white p-20">
+      <i class="fas fa-spinner fa-spin text-5xl mb-4 text-brand-gold"></i>
+      <p class="text-xl font-bold">جاري تحميل المعاينة...</p>
+    </div>
+  `;
+  document.getElementById("pdfPreviewModal").classList.remove("hidden");
 
-  titleEl.textContent = `معاينة: ${title}`;
-  modal.classList.remove("hidden");
-  // loading.classList.remove("hidden");
+  try {
+    let arrayBuffer;
 
-  // Clear previous content
-  container.innerHTML = "";
+    if (dataOrUrl instanceof ArrayBuffer || dataOrUrl instanceof Uint8Array) {
+      // If we already have the data (for generated statements)
+      arrayBuffer = dataOrUrl;
+    } else {
+      // If it's a URL (for uploaded files), fetch via POST to bypass IDM
+      console.log("Fetching PDF via POST JSON bypass:", dataOrUrl);
+      
+      const response = await fetch('/api/pdf-data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filename: dataOrUrl })
+      });
+      
+      const result = await response.json();
+      if (!result.success) throw new Error(result.error || "Failed to fetch PDF data");
 
-  // Initialize EmbedPDF
-  // Note: EmbedPDF becomes available globally via the snippet script
-  if (window.EmbedPDF) {
-    window.EmbedPDF.init({
-      type: "container",
-      target: container,
-      src: url,
-      theme: { preference: "system" },
-    });
-  } else {
-    console.error("EmbedPDF library not loaded");
-    alert("تعذر تحميل معاين الملفات المتقدم");
-    closePDFPreview();
+      // Convert base64 to ArrayBuffer
+      const binaryString = window.atob(result.data);
+      const len = binaryString.length;
+      const bytes = new Uint8Array(len);
+      for (let i = 0; i < len; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      arrayBuffer = bytes.buffer;
+    }
+
+    console.log("Received ArrayBuffer size:", arrayBuffer ? arrayBuffer.byteLength : "null", "bytes");
+
+    if (!arrayBuffer || arrayBuffer.byteLength === 0) {
+      throw new Error(`The PDF file data is empty (0 bytes). View the console for response details.`);
+    }
+
+    // Initialize PDF.js
+    const pdfjsLib = window['pdfjs-dist/build/pdf'];
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+    // Load the document
+    const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+    const pdf = await loadingTask.promise;
+    
+    container.innerHTML = ""; // Clear loader
+
+    // Render pages
+    for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+      const page = await pdf.getPage(pageNum);
+      
+      const viewport_orig = page.getViewport({ scale: 1.0 });
+      const scale = (container.clientWidth - 40) / viewport_orig.width;
+      const viewport = page.getViewport({ scale: Math.min(scale, 2.0) });
+
+      const canvas = document.createElement('canvas');
+      canvas.className = "shadow-2xl mb-6 bg-white rounded-lg";
+      const context = canvas.getContext('2d');
+      canvas.height = viewport.height;
+      canvas.width = viewport.width;
+
+      await page.render({
+        canvasContext: context,
+        viewport: viewport
+      }).promise;
+      
+      container.appendChild(canvas);
+    }
+  } catch (err) {
+    console.error("PDF Preview Error:", err);
+    container.innerHTML = `
+      <div class="flex flex-col items-center justify-center text-white p-10 text-center">
+        <i class="fas fa-exclamation-triangle text-5xl mb-4 text-red-500"></i>
+        <h3 class="text-xl font-bold mb-4">تعذر عرض الملف</h3>
+        <p class="mb-2 text-red-400 font-mono text-xs">${err.message}</p>
+        <p class="mb-6 opacity-75">قد يكون هناك مشكلة في تحميل البيانات أو أن الملف تالف.</p>
+        <div class="flex gap-4">
+          <a href="${typeof dataOrUrl === 'string' ? dataOrUrl : '#'}" target="_blank" class="bg-brand-gold text-white px-8 py-3 rounded-2xl font-bold ${typeof dataOrUrl !== 'string' ? 'hidden' : ''}">فتح الملف مباشرة</a>
+          <button onclick="closePDFPreview()" class="bg-white/10 text-white px-8 py-3 rounded-2xl font-bold">إغلاق</button>
+        </div>
+      </div>
+    `;
   }
 }
 
 function closePDFPreview() {
-  const modal = document.getElementById("pdfPreviewModal");
-  const container = document.getElementById("embedpdf-container");
-
-  modal.classList.add("hidden");
-  container.innerHTML = ""; // Cleanup
+  document.getElementById("pdfPreviewModal").classList.add("hidden");
+  document.getElementById("pdfViewerContainer").innerHTML = "";
 }
+
+async function previewStatementPDF() {
+  if (!activeClient) return;
+  
+  const { jsPDF } = window.jspdf;
+  const element = document.getElementById("financials-capture-area");
+  
+  // Open a loading state or just proceed
+  const btn = event.currentTarget;
+  const originalHtml = btn.innerHTML;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري التحضير...';
+  btn.disabled = true;
+
+  try {
+    // Generate canvas from HTML
+    const canvas = await html2canvas(element, {
+      scale: 2,
+      useCORS: true,
+      logging: false,
+      backgroundColor: document.documentElement.classList.contains('dark') ? '#0f172a' : '#f8fafc'
+    });
+    
+    const imgData = canvas.toDataURL("image/png");
+    const pdf = new jsPDF("p", "mm", "a4");
+    
+    // Calculate dimensions
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+    
+    pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+    
+    // Show in preview modal
+    const pdfData = pdf.output("arraybuffer");
+    openPDFPreview(`كشف حساب - ${activeClient.name}`, pdfData);
+    
+  } catch (err) {
+    console.error("PDF Generation Error:", err);
+    alert("حدث خطأ أثناء إنشاء الملف");
+  } finally {
+    btn.innerHTML = originalHtml;
+    btn.disabled = false;
+  }
+}
+
 
 function downloadPDF(url, originalName) {
   const link = document.createElement("a");

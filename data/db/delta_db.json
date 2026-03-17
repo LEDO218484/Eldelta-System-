@@ -8,7 +8,15 @@
     "phone": "",
     "expenses": [],
     "tips": [],
-    "docs": [],
+    "docs": [
+      {
+        "person": "ali",
+        "name": "abc",
+        "purpose": "travel",
+        "place": "cairo",
+        "date": "2026-03-17"
+      }
+    ],
     "payments": [
       {
         "id": "1773781843182",

@@ -770,6 +770,26 @@ function addDoc() {
   }
 }
 
+function saveEditDoc(i) {
+  const p = document.getElementById("in1").value;
+  const n = document.getElementById("in2").value;
+  const g = document.getElementById("in3").value;
+  const l = document.getElementById("in4").value;
+  const d = document.getElementById("inDocDate").value;
+  if (p && n && activeClient.docs[i]) {
+    activeClient.docs[i] = {
+      person: p,
+      name: n,
+      purpose: g,
+      place: l,
+      date: d,
+    };
+    saveDB();
+    updateClientDOM();
+    closeModals();
+  }
+}
+
 function addNewMoney() {
   const receiver = document.getElementById("in2").value;
   const amount = parseFloat(document.getElementById("in3").value);
@@ -829,19 +849,7 @@ function saveNewValue() {
 }
 
 function editDoc(i) {
-  const doc = activeClient.docs[i];
-  const person = prompt("المستلم", doc.person);
-  const name = prompt("اسم الورقة", doc.name);
-  const purpose = prompt("الغرض", doc.purpose);
-  const place = prompt("المكان", doc.place);
-  if (person && name) {
-    doc.person = person;
-    doc.name = name;
-    doc.purpose = purpose;
-    doc.place = place;
-    saveDB();
-    updateClientDOM();
-  }
+  showSubModal("doc", i);
 }
 
 /**
@@ -857,7 +865,7 @@ function closeModals() {
   closeConfirmModal();
 }
 
-function showSubModal(type) {
+function showSubModal(type, docIdx = null) {
   const div = document.getElementById("subModalContent");
   if (type === "exp") {
     div.innerHTML = `
@@ -903,16 +911,21 @@ function showSubModal(type) {
   }
   // حركة مستند
   else if (type === "doc") {
+    const isEdit = docIdx !== null;
+    const doc = isEdit ? activeClient.docs[docIdx] : { person: "", name: "", purpose: "", place: "", date: "" };
+
     div.innerHTML = `
-      <h3 class="font-black text-2xl mb-6 dark:text-white text-center">حركة مستند</h3>
+      <h3 class="font-black text-2xl mb-6 dark:text-white text-center">${isEdit ? 'تعديل مستند' : 'حركة مستند'}</h3>
       <div class="space-y-4 mb-6">
-        <input id="in1" class="w-full px-4 py-2 rounded-xl border-2 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 dark:text-white" placeholder="المستلم" />
-        <input id="in2" class="w-full px-4 py-2 rounded-xl border-2 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 dark:text-white" placeholder="اسم الورقة" />
-        <input id="in3" class="w-full px-4 py-2 rounded-xl border-2 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 dark:text-white" placeholder="الغرض" />
-        <input id="in4" class="w-full px-4 py-2 rounded-xl border-2 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 dark:text-white" placeholder="المكان" />
-        <input id="inDocDate" type="date" class="w-full px-4 py-2 rounded-xl border-2 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 dark:text-white" />
+        <input id="in1" class="w-full px-4 py-2 rounded-xl border-2 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 dark:text-white" placeholder="المستلم" value="${doc.person}" />
+        <input id="in2" class="w-full px-4 py-2 rounded-xl border-2 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 dark:text-white" placeholder="اسم الورقة" value="${doc.name}" />
+        <input id="in3" class="w-full px-4 py-2 rounded-xl border-2 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 dark:text-white" placeholder="الغرض" value="${doc.purpose}" />
+        <input id="in4" class="w-full px-4 py-2 rounded-xl border-2 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 dark:text-white" placeholder="المكان" value="${doc.place}" />
+        <input id="inDocDate" type="date" class="w-full px-4 py-2 rounded-xl border-2 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 dark:text-white" value="${doc.date}" />
       </div>
-      <button onclick="addDoc()" class="w-full bg-blue-600 text-white py-3 rounded-xl font-black text-lg shadow-lg hover:bg-blue-700">تسجيل وحفظ</button>
+      <button onclick="${isEdit ? `saveEditDoc(${docIdx})` : 'addDoc()'}" class="w-full bg-blue-600 text-white py-3 rounded-xl font-black text-lg shadow-lg hover:bg-blue-700">
+        ${isEdit ? 'حفظ التعديلات' : 'تسجيل وحفظ'}
+      </button>
     `;
     document.getElementById("subModal").firstElementChild.className =
       "bg-white dark:bg-slate-800 p-8 rounded-3xl shadow-2xl w-96 text-right relative border-t-4 border-blue-500";

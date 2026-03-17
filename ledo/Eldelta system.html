@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>منصة نجاح لإدارة المقاولات</title>
+    
+    <link rel="icon" id="dynamic-favicon" href="https://cdn-icons-png.flaticon.com/512/2333/2333182.png">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Cairo', 'sans-serif'] },
+                    colors: {
+                        brand: { dark: '#0f172a', gold: '#d4af37', bg: '#f8fafc' },
+                        dash: { primary: '#2c3e50', accent: '#f39c12' }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { font-family: 'Cairo', sans-serif; transition: background-color 0.3s, color 0.3s; }
+        .page-hidden { display: none !important; }
+        .dash-bg { background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); min-height: 100vh; transition: background 0.3s;}
+        .dark .dash-bg { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); }
+        .dash-input { width: 100%; padding: 15px 45px 15px 15px; border: 2px solid #edf2f7; border-radius: 15px; outline: none; transition: 0.3s; }
+        .dark .dash-input { background-color: #1e293b; border-color: #334155; color: white; }
+        .dash-input:focus { border-color: #f39c12; }
+        .dash-btn { background: #2c3e50; color: white; border: none; padding: 15px; border-radius: 15px; font-weight: 700; width: 100%; cursor: pointer; transition: 0.3s; }
+        .dark .dash-btn { background: #3b82f6; }
+        .dash-btn:hover { background: #f39c12; }
+        
+        .dash-table { width: 100%; border-collapse: separate; border-spacing: 0 15px; }
+        .dash-table th { padding: 15px; text-align: right; color: #718096; border-bottom: 2px solid #edf2f7; }
+        .dark .dash-table th { border-bottom-color: #334155; color: #94a3b8; }
+        .dash-table td { padding: 20px 15px; background: white; border-top: 1px solid #f1f1f1; border-bottom: 1px solid #f1f1f1; transition: 0.3s;}
+        .dark .dash-table td { background: #1e293b; border-color: #334155; color: white; }
+
+        @keyframes shake {
+            0%, 100% {transform: translateX(0);}
+            25% {transform: translateX(-10px);}
+            75% {transform: translateX(10px);}
+        }
+
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .dark ::-webkit-scrollbar-thumb { background: #475569; }
+        .editable-item:hover { opacity: 0.7; transform: scale(1.02); transition: all 0.2s ease; cursor: pointer; }
+    </style>
+</head>
+<body class="bg-brand-bg dark:bg-slate-900 text-gray-800 dark:text-gray-100">
+
+    <input type="file" id="siteLogoUpload" class="hidden" accept="image/*" onchange="changeSiteLogo(event)">
+
+    <section id="login-wrapper" class="dash-bg flex justify-center items-center p-5 relative z-[9999]">
+        <div id="login-box" class="bg-white dark:bg-slate-800 p-12 rounded-[30px] shadow-2xl w-full max-w-md text-center border border-gray-100 dark:border-slate-700 transition-colors">
+            <img id="main-logo-login" src="https://cdn-icons-png.flaticon.com/512/2333/2333182.png" alt="Logo" class="w-24 h-24 mx-auto mb-4 object-contain drop-shadow-md">
+            
+            <h2 class="text-[#2c3e50] dark:text-white font-black text-3xl mb-8">بوابة نجاح للمقاولات</h2>
+            
+            <div class="relative mb-5">
+                <i class="fas fa-user absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                <input type="text" id="userInput" class="dash-input" placeholder="اسم المستخدم">
+            </div>
+            <div class="relative mb-5">
+                <i class="fas fa-lock absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                <input type="password" id="passInput" class="dash-input" placeholder="كلمة السر" onkeyup="if(event.key === 'Enter') handleLogin()">
+            </div>
+            
+            <button class="dash-btn text-lg" onclick="handleLogin()">دخول النظام</button>
+            <p id="errorMessage" class="text-red-500 font-bold mt-4 hidden">خطأ في البيانات، حاول مرة أخرى!</p>
+        </div>
+    </section>
+
+    <section id="dashboard-wrapper" class="dash-bg page-hidden p-8 overflow-y-auto relative z-50">
+        <div class="max-w-6xl mx-auto bg-white dark:bg-slate-800 rounded-[35px] p-10 shadow-xl transition-colors border dark:border-slate-700">
+            
+            <div class="flex justify-between items-center mb-10 flex-wrap gap-5 border-b border-gray-100 dark:border-slate-700 pb-6">
+                <div class="flex items-center gap-4">
+                    <div class="relative group cursor-pointer" onclick="document.getElementById('siteLogoUpload').click()" title="تغيير شعار الموقع">
+                        <img id="main-logo-dash" src="https://cdn-icons-png.flaticon.com/512/2333/2333182.png" alt="Logo" class="w-16 h-16 object-contain drop-shadow-sm group-hover:opacity-50 transition">
+                        <i class="fas fa-camera absolute inset-0 m-auto text-gray-800 dark:text-white text-xl opacity-0 group-hover:opacity-100 transition flex justify-center items-center"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-4xl font-black text-dash-primary dark:text-white">شركة صرح المقاولات</h1>
+                        <p class="text-xl font-bold text-dash-accent mt-1">أهلاً بك يا <span id="adminName"></span> في لوحة تحكم نجاح</p>
+                    </div>
+                </div>
+
+                <div class="flex gap-3 items-center">
+                    <button onclick="toggleDarkMode()" class="bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-yellow-400 w-14 h-14 rounded-2xl flex items-center justify-center text-2xl shadow-sm hover:scale-105 transition-all">
+                        <i id="themeIcon" class="fas fa-moon"></i>
+                    </button>
+                    <button onclick="openTrashModal()" class="bg-red-50 dark:bg-red-900/30 text-red-500 px-6 py-4 rounded-2xl font-black text-lg shadow-sm hover:-translate-y-1 hover:bg-red-500 hover:text-white transition-all flex items-center gap-3">
+                        <i class="fas fa-trash-can text-xl"></i> المهملات
+                    </button>
+                    <button onclick="toggleNewClientModal()" class="bg-dash-accent text-white px-8 py-4 rounded-2xl font-black text-lg shadow-lg hover:-translate-y-1 hover:shadow-orange-300/50 transition-all flex items-center gap-3">
+                        <i class="fas fa-plus-square text-xl"></i> إنشاء عميل
+                    </button>
+                </div>
+            </div>
+
+            <div class="relative mb-8 max-w-2xl mx-auto">
+                <i class="fas fa-search absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 text-lg"></i>
+                <input type="text" id="mainSearchInput" onkeyup="renderDashboard(this.value)" class="dash-input pr-12 w-full text-lg shadow-sm" placeholder="ابحث عن عميل، مشروع، أو رقم هاتف...">
+            </div>
+
+            <div class="bg-gray-50 dark:bg-slate-900 rounded-3xl p-6 border border-gray-100 dark:border-slate-700 transition-colors">
+                <h3 class="mb-4 font-black text-dash-primary dark:text-white text-xl">إدارة العملاء والمشاريع</h3>
+                <div class="overflow-x-auto">
+                    <table class="dash-table text-right min-w-full">
+                        <thead>
+                            <tr>
+                                <th>العميل</th>
+                                <th>نوع المشروع</th>
+                                <th>حالة الإنجاز</th>
+                                <th>رقم الهاتف</th>
+                                <th>الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="mainTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="newClientModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex justify-center items-center">
+            <div class="bg-white dark:bg-slate-800 p-8 rounded-3xl shadow-2xl w-full max-w-md relative border dark:border-slate-700">
+                <h3 class="text-2xl font-black text-dash-primary dark:text-white mb-6">إضافة مشروع/عميل جديد</h3>
+                <input type="text" id="newC_Name" class="dash-input mb-4" placeholder="اسم العميل">
+                <input type="text" id="newC_Project" class="dash-input mb-4" placeholder="اسم المشروع">
+                <input type="text" id="newC_Phone" class="dash-input mb-4" placeholder="رقم الهاتف">
+                <input type="number" id="newC_Progress" class="dash-input mb-6" placeholder="نسبة الإنجاز (0-100)">
+                <button onclick="createNewClient()" class="dash-btn bg-dash-accent hover:bg-orange-500 text-lg mb-3">حفظ وإنشاء</button>
+                <button onclick="toggleNewClientModal()" class="w-full text-red-500 font-bold py-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl">إلغاء</button>
+            </div>
+            
+        </div>
+
+        <div id="trashModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex justify-center items-center">
+            <div class="bg-white dark:bg-slate-800 p-8 rounded-3xl shadow-2xl w-full max-w-3xl relative border dark:border-slate-700">
+                <button onclick="closeModals()" class="absolute top-4 left-4 text-gray-400 hover:text-red-500"><i class="fas fa-times text-2xl"></i></button>
+                <h3 class="text-2xl font-black text-red-500 mb-4 flex items-center gap-2"><i class="fas fa-trash-can"></i> سلة المهملات</h3>
+                
+                <div class="relative mb-6">
+                    <i class="fas fa-search absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                    <input type="text" id="trashSearchInput" onkeyup="renderTrashTable(this.value)" class="dash-input pr-12 w-full py-3" placeholder="ابحث في المهملات بالاسم أو المشروع...">
+                </div>
+
+                <div class="overflow-y-auto max-h-96">
+                    <table class="w-full text-right bg-gray-50 dark:bg-slate-900 rounded-xl overflow-hidden">
+                        <thead class="bg-gray-200 dark:bg-slate-700">
+                            <tr>
+                                <th class="p-4 text-sm font-bold text-gray-700 dark:text-gray-200">اسم العميل</th>
+                                <th class="p-4 text-sm font-bold text-gray-700 dark:text-gray-200">المشروع</th>
+                                <th class="p-4 text-sm font-bold text-gray-700 dark:text-gray-200">إجراء</th>
+                            </tr>
+                        </thead>
+                        <tbody id="trashTableBody" class="text-sm dark:text-white"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="client-wrapper" class="page-hidden h-screen overflow-hidden flex text-gray-800 bg-brand-bg dark:bg-slate-900 relative z-40 transition-colors">
+        
+        <button onclick="backToDashboard()" class="absolute top-4 left-4 z-50 bg-brand-dark dark:bg-slate-800 text-white px-5 py-2 rounded-xl font-bold shadow-lg hover:bg-black transition flex items-center gap-2 border dark:border-slate-600">
+            <i class="fas fa-arrow-right"></i> العودة
+        </button>
+
+        <aside class="w-80 bg-white dark:bg-slate-800 border-l border-gray-200 dark:border-slate-700 shadow-xl z-10 flex flex-col transition-colors">
+            <div class="p-6 bg-brand-dark dark:bg-slate-900 text-center border-b-4 border-brand-gold">
+                <div class="relative inline-block mt-4 mb-3 cursor-pointer group" onclick="document.getElementById('profileUpload').click()" title="تغيير صورة العميل">
+                    <img id="profileImage" src="https://i.pravatar.cc/150?img=11" alt="Client" class="w-24 h-24 rounded-full border-4 border-white dark:border-slate-700 shadow-lg object-cover transition duration-300 group-hover:opacity-60 bg-white">
+                    <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition duration-300">
+                        <i class="fas fa-camera text-white text-2xl drop-shadow-md"></i>
+                    </div>
+                    <div class="absolute bottom-1 right-1 w-5 h-5 bg-green-500 border-2 border-white rounded-full"></div>
+                    <input type="file" id="profileUpload" class="hidden" accept="image/*" onchange="previewImage(event)">
+                </div>
+                <h2 id="clientNameText" class="text-xl font-black text-white editable-item" onclick="requestEdit('name', 'text', 'اسم العميل')" title="اضغط للتعديل">اسم العميل</h2>
+                <p id="clientCodeText" class="text-brand-gold text-sm font-bold mt-1">#C-<span id="clientIdLabel">0000</span></p>
+            </div>
+
+            <div class="p-6 flex-1 overflow-y-auto space-y-5">
+                <div>
+                    <p class="text-xs text-gray-400 font-bold mb-1 uppercase">رقم الجوال</p>
+                    <div class="flex items-center gap-3 bg-gray-50 dark:bg-slate-700 p-3 rounded-xl border border-gray-100 dark:border-slate-600 shadow-sm editable-item" onclick="requestEdit('phone', 'text', 'رقم الجوال')">
+                        <i class="fas fa-phone text-brand-gold"></i>
+                        <span id="clientPhoneText" class="font-bold text-gray-700 dark:text-gray-100" dir="ltr">رقم الهاتف</span>
+                    </div>
+                </div>
+
+                <div>
+                    <p class="text-xs text-gray-400 font-bold mb-1 uppercase">رقم الهوية / السجل</p>
+                    <div class="flex items-center gap-3 bg-gray-50 dark:bg-slate-700 p-3 rounded-xl border border-gray-100 dark:border-slate-600 shadow-sm editable-item" onclick="requestEdit('idNumber', 'text', 'رقم الهوية')">
+                        <i class="fas fa-id-card text-brand-gold"></i>
+                        <span id="clientIdText" class="font-bold text-gray-700 dark:text-gray-100">رقم الهوية</span>
+                    </div>
+                </div>
+
+                <div>
+                    <p class="text-xs text-gray-400 font-bold mb-1 uppercase">اسم المشروع</p>
+                    <div class="flex items-center gap-3 bg-gray-50 dark:bg-slate-700 p-3 rounded-xl border border-gray-100 dark:border-slate-600 shadow-sm editable-item" onclick="requestEdit('project', 'text', 'اسم المشروع')">
+                        <i class="fas fa-building text-brand-gold"></i>
+                        <span id="projectNameText" class="font-bold text-gray-700 dark:text-gray-100">اسم المشروع</span>
+                    </div>
+                </div>
+
+                <div>
+                    <p class="text-xs text-gray-400 font-bold mb-1 uppercase">حالة العقد</p>
+                    <div class="flex items-center gap-3 bg-green-50 dark:bg-green-900/30 p-3 rounded-xl border border-green-200 dark:border-green-800 text-green-700 dark:text-green-400 shadow-sm editable-item" onclick="requestEdit('contractStatus', 'text', 'حالة العقد')">
+                        <i class="fas fa-file-signature"></i>
+                        <span id="contractStatusText" class="font-bold">حالة العقد</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="flex-1 overflow-y-auto p-8 relative">
+            <header class="mb-8 flex justify-between items-center bg-white dark:bg-slate-800 p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-slate-700 mt-2 transition-colors">
+                <div>
+                    <h1 class="text-3xl font-black text-brand-dark dark:text-white">لوحة تحكم العميل</h1>
+                    <p class="text-gray-500 dark:text-gray-400 font-semibold mt-1">إدارة الشؤون المالية والمستندات</p>
+                </div>
+            </header>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-sm border-b-8 border-green-500 relative group overflow-hidden flex flex-col justify-between h-56 transition-colors">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-gray-400 font-bold text-sm mb-1">إجمالي ما دفعه العميل</p>
+                            <h3 class="text-4xl font-black text-green-600 dark:text-green-400"><span id="paidAmountText">0</span> <span class="text-lg">ر.س</span></h3>
+                        </div>
+                        <div class="w-14 h-14 bg-green-50 dark:bg-green-900/30 text-green-500 rounded-2xl flex items-center justify-center text-2xl"><i class="fas fa-money-bill-wave"></i></div>
+                    </div>
+                    <button onclick="requestEdit('paid', 'number', 'المبلغ المدفوع')" class="mt-auto w-full bg-gray-50 dark:bg-slate-700 text-gray-600 dark:text-gray-300 py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-green-500 dark:hover:bg-green-600 hover:text-white transition">
+                        <i class="fas fa-pen"></i> تعديل الرقم
+                    </button>
+                </div>
+
+                <div class="bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-sm border-b-8 border-red-500 relative group overflow-hidden flex flex-col justify-between h-56 transition-colors">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-gray-400 font-bold text-sm mb-1">المتبقي على العميل (المديونية)</p>
+                            <h3 class="text-4xl font-black text-red-600 dark:text-red-400"><span id="owedAmountText">0</span> <span class="text-lg">ر.س</span></h3>
+                        </div>
+                        <div class="w-14 h-14 bg-red-50 dark:bg-red-900/30 text-red-500 rounded-2xl flex items-center justify-center text-2xl"><i class="fas fa-hand-holding-dollar"></i></div>
+                    </div>
+                    <button onclick="requestEdit('owed', 'number', 'مبلغ المديونية')" class="mt-auto w-full bg-gray-50 dark:bg-slate-700 text-gray-600 dark:text-gray-300 py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-red-500 dark:hover:bg-red-600 hover:text-white transition">
+                        <i class="fas fa-pen"></i> تعديل الرقم
+                    </button>
+                </div>
+
+                <div class="bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-slate-700 flex flex-col items-center justify-center text-center h-56 transition-colors">
+                    <div class="w-16 h-16 bg-red-50 dark:bg-red-900/30 rounded-2xl flex items-center justify-center mb-3">
+                        <i class="fas fa-file-pdf text-4xl text-red-500"></i>
+                    </div>
+                    <h3 class="text-lg font-black text-brand-dark dark:text-white">الملف الأصلي للعميل</h3>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 font-semibold mt-1 mb-4">يحتوي على العقود والمخططات</p>
+                    <button class="w-full bg-[#1e293b] text-white py-3 rounded-xl font-bold hover:bg-black transition flex items-center justify-center gap-3">
+                        تحميل الملف <i class="fas fa-download"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                <div class="bg-white dark:bg-slate-800 p-6 rounded-3xl border border-gray-100 dark:border-slate-700 shadow-sm flex flex-col transition-colors">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="font-black text-xl text-brand-dark dark:text-white flex items-center gap-2">
+                            <i class="fas fa-receipt text-brand-gold"></i> الدفعات / المصروفات
+                        </h3>
+                        <button onclick="document.getElementById('addExpenseModal').classList.remove('hidden')" class="text-sm bg-gray-50 dark:bg-slate-700 dark:text-gray-200 text-gray-600 px-3 py-1 rounded-lg font-bold hover:bg-gray-200 transition">إضافة +</button>
+                    </div>
+                    <div class="overflow-y-auto max-h-64 flex-1 pr-2">
+                        <table class="w-full text-right">
+                            <thead class="bg-gray-50 dark:bg-slate-700 sticky top-0">
+                                <tr>
+                                    <th class="p-3 text-sm font-bold text-gray-500 dark:text-gray-300 rounded-r-lg">البيان</th>
+                                    <th class="p-3 text-sm font-bold text-gray-500 dark:text-gray-300">التاريخ</th>
+                                    <th class="p-3 text-sm font-bold text-gray-500 dark:text-gray-300 rounded-l-lg">المبلغ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="expensesTableBody" class="text-sm dark:text-gray-200"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="bg-white dark:bg-slate-800 p-6 rounded-3xl border border-gray-100 dark:border-slate-700 shadow-sm flex flex-col transition-colors">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="font-black text-xl text-brand-dark dark:text-white flex items-center gap-2">
+                            <i class="fas fa-file-export text-blue-500"></i> حركة المستندات
+                        </h3>
+                        <button onclick="document.getElementById('addDocumentModal').classList.remove('hidden')" class="text-sm bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-3 py-1 rounded-lg font-bold hover:bg-blue-100 transition">إضافة +</button>
+                    </div>
+                    <div class="overflow-y-auto max-h-64 flex-1 pr-2">
+                        <table class="w-full text-right">
+                            <thead class="bg-gray-50 dark:bg-slate-700 sticky top-0">
+                                <tr>
+                                    <th class="p-3 text-sm font-bold text-gray-500 dark:text-gray-300 rounded-r-lg">المستند</th>
+                                    <th class="p-3 text-sm font-bold text-gray-500 dark:text-gray-300">بواسطة</th>
+                                    <th class="p-3 text-sm font-bold text-gray-500 dark:text-gray-300">التاريخ</th>
+                                    <th class="p-3 text-sm font-bold text-gray-500 dark:text-gray-300 rounded-l-lg">الحالة</th>
+                                </tr>
+                            </thead>
+                            <tbody id="documentsTableBody" class="text-sm dark:text-gray-200"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <div id="editValueModal" class="hidden fixed inset-0 bg-brand-dark/80 backdrop-blur-sm z-[200] flex items-center justify-center">
+            <div class="bg-white dark:bg-slate-800 p-8 rounded-3xl shadow-2xl w-96 text-center relative border-t-4 border-brand-gold">
+                <button onclick="closeModals()" class="absolute top-4 left-4 text-gray-400 hover:text-red-500"><i class="fas fa-times text-xl"></i></button>
+                <h3 id="editModalTitle" class="text-2xl font-black text-brand-dark dark:text-white mb-6">تعديل القيمة</h3>
+                <input type="text" id="newValueInput" class="w-full text-center text-xl font-black px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-slate-600 focus:border-brand-gold outline-none bg-gray-50 dark:bg-slate-700 dark:text-white mb-6">
+                <button onclick="saveNewValue()" class="w-full bg-green-500 text-white py-3 rounded-xl font-black text-lg shadow-lg hover:bg-green-600">حفظ <i class="fas fa-check"></i></button>
+            </div>
+        </div>
+
+        <div id="addExpenseModal" class="hidden fixed inset-0 bg-brand-dark/80 backdrop-blur-sm z-[200] flex items-center justify-center">
+            <div class="bg-white dark:bg-slate-800 p-8 rounded-3xl shadow-2xl w-96 text-right relative border-t-4 border-brand-gold">
+                <button onclick="closeModals()" class="absolute top-4 left-4 text-gray-400 hover:text-red-500"><i class="fas fa-times text-xl"></i></button>
+                <h3 class="text-2xl font-black text-brand-dark dark:text-white mb-6 text-center">إضافة مصروف جديد</h3>
+                <div class="space-y-4 mb-6">
+                    <input type="text" id="expTitle" placeholder="البيان" class="w-full px-4 py-2 rounded-xl border-2 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 dark:text-white">
+                    <input type="date" id="expDate" class="w-full px-4 py-2 rounded-xl border-2 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 dark:text-white">
+                    <input type="number" id="expAmount" placeholder="المبلغ" class="w-full px-4 py-2 rounded-xl border-2 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 dark:text-white">
+                </div>
+                <button onclick="saveExpense()" class="w-full bg-brand-dark dark:bg-brand-gold text-brand-gold dark:text-brand-dark py-3 rounded-xl font-black">حفظ</button>
+            </div>
+        </div>
+
+        <div id="addDocumentModal" class="hidden fixed inset-0 bg-brand-dark/80 backdrop-blur-sm z-[200] flex items-center justify-center">
+            <div class="bg-white dark:bg-slate-800 p-8 rounded-3xl shadow-2xl w-96 text-right relative border-t-4 border-blue-500">
+                <button onclick="closeModals()" class="absolute top-4 left-4 text-gray-400 hover:text-red-500"><i class="fas fa-times text-xl"></i></button>
+                <h3 class="text-2xl font-black text-brand-dark dark:text-white mb-6 text-center">حركة مستند</h3>
+                <div class="space-y-4 mb-6">
+                    <input type="text" id="docName" placeholder="اسم المستند" class="w-full px-4 py-2 rounded-xl border-2 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 dark:text-white">
+                    <input type="text" id="docBy" placeholder="بواسطة" class="w-full px-4 py-2 rounded-xl border-2 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 dark:text-white">
+                    <input type="date" id="docDate" class="w-full px-4 py-2 rounded-xl border-2 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 dark:text-white">
+                    <input type="text" id="docStatus" placeholder="الحالة (مثال: تم التسليم)" class="w-full px-4 py-2 rounded-xl border-2 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 dark:text-white">
+                </div>
+                <button onclick="saveDocument()" class="w-full bg-blue-500 text-white py-3 rounded-xl font-black">حفظ</button>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        /* =========================================
+           إعدادات الموقع (الثيم وشعار الموقع)
+        ========================================= */
+        function checkTheme() {
+            if (localStorage.getItem('najah_theme') === 'dark') {
+                document.documentElement.classList.add('dark');
+                document.getElementById('themeIcon').classList.replace('fa-moon', 'fa-sun');
+            }
+        }
+        checkTheme();
+
+        function toggleDarkMode() {
+            const html = document.documentElement;
+            const icon = document.getElementById('themeIcon');
+            html.classList.toggle('dark');
+            if (html.classList.contains('dark')) {
+                localStorage.setItem('najah_theme', 'dark');
+                icon.classList.replace('fa-moon', 'fa-sun');
+            } else {
+                localStorage.setItem('najah_theme', 'light');
+                icon.classList.replace('fa-sun', 'fa-moon');
+            }
+        }
+
+        // شعار الموقع
+        function applySiteLogo(url) {
+            document.getElementById('main-logo-login').src = url;
+            document.getElementById('main-logo-dash').src = url;
+            document.getElementById('dynamic-favicon').href = url;
+        }
+
+        function loadSiteLogo() {
+            const savedLogo = localStorage.getItem('najah_site_logo');
+            if(savedLogo) applySiteLogo(savedLogo);
+        }
+        loadSiteLogo();
+
+        function changeSiteLogo(event) {
+            const file = event.target.files[0];
+            if(file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const newUrl = e.target.result;
+                    localStorage.setItem('najah_site_logo', newUrl);
+                    applySiteLogo(newUrl);
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        /* =========================================
+           قاعدة البيانات المصغرة
+        ========================================= */
+        let clientsDB = JSON.parse(localStorage.getItem('najah_clients_db')) || [];
+        let trashDB = JSON.parse(localStorage.getItem('najah_trash_db')) || [];
+        let activeClient = null;
+        let currentEditField = null;
+
+        if(clientsDB.length === 0 && trashDB.length === 0) {
+            clientsDB.push({
+                id: '9021', name: 'م. صالح عبدلله الماجد', phone: '+20 11 2431 0907', project: 'فيلا سكنية - حي النرجس', progress: 70, idNumber: '1092837465', contractStatus: 'قيد التنفيذ', paid: '250,000', owed: '150,000', photo: 'https://i.pravatar.cc/150?img=11',
+                expenses: [ {title: 'الدفعة الأولى', date: '2023-10-15', amount: '50000'} ],
+                documents: [ {name: 'العقد الأصلي', by: 'أحمد', date: '2023-10-15', status: 'مُسْتَرجَع'} ]
+            });
+            saveDB();
+        }
+
+        function saveDB() { 
+            localStorage.setItem('najah_clients_db', JSON.stringify(clientsDB)); 
+            localStorage.setItem('najah_trash_db', JSON.stringify(trashDB));
+        }
+
+        /* =========================================
+           نظام الدخول
+        ========================================= */
+        function handleLogin() {
+            const user = document.getElementById('userInput').value.trim();
+            const pass = document.getElementById('passInput').value;
+            const authorized = ["فوزي", "محمود", "نجاح", "وليد", "omar"];
+            
+            if (authorized.includes(user) && pass === "123456789") {
+                document.getElementById('login-wrapper').classList.add('page-hidden');
+                document.getElementById('dashboard-wrapper').classList.remove('page-hidden');
+                document.getElementById('adminName').innerText = user;
+                renderDashboard();
+            } else {
+                document.getElementById('errorMessage').classList.remove('hidden');
+                document.getElementById('login-box').style.animation = "shake 0.4s";
+                setTimeout(() => document.getElementById('login-box').style.animation = "", 400);
+            }
+        }
+
+        /* =========================================
+           لوحة التحكم والعملاء (مع البحث)
+        ========================================= */
+        function renderDashboard(searchQuery = '') {
+            const tbody = document.getElementById('mainTableBody');
+            tbody.innerHTML = '';
+            
+            const filteredClients = clientsDB.filter(client => {
+                const query = searchQuery.toLowerCase();
+                return client.name.toLowerCase().includes(query) || 
+                       client.project.toLowerCase().includes(query) || 
+                       client.phone.includes(query);
+            });
+
+            if (filteredClients.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-6 text-gray-500 font-bold">لا توجد نتائج مطابقة</td></tr>`;
+                return;
+            }
+
+            filteredClients.forEach(client => {
+                tbody.innerHTML += `
+                    <tr class="hover:bg-gray-50 dark:hover:bg-slate-700 transition">
+                        <td class="rounded-r-2xl border-l-0">
+                            <div class="font-bold flex items-center gap-3">
+                                <img src="${client.photo || 'https://i.pravatar.cc/150?img=12'}" class="w-10 h-10 rounded-full object-cover">
+                                ${client.name}
+                            </div>
+                        </td>
+                        <td class="border-x border-gray-100 dark:border-slate-700">${client.project}</td>
+                        <td class="border-x border-gray-100 dark:border-slate-700"><div class="h-2 w-24 bg-gray-200 dark:bg-slate-600 rounded-full overflow-hidden"><div class="h-full bg-[#f39c12]" style="width: ${client.progress}%"></div></div></td>
+                        <td class="border-x border-gray-100 dark:border-slate-700 font-bold" dir="ltr">${client.phone}</td>
+                        <td class="rounded-l-2xl border-r-0">
+                            <div class="flex gap-2 justify-end">
+                                <button onclick="openClientPage('${client.id}')" class="bg-gray-100 dark:bg-slate-600 px-4 py-2 rounded-lg font-bold hover:bg-[#2c3e50] hover:text-white transition">عرض</button>
+                                <button onclick="requestDelete('${client.id}')" class="bg-red-50 dark:bg-red-900/30 px-3 py-2 rounded-lg text-red-500 font-bold hover:bg-red-500 hover:text-white transition"><i class="fas fa-trash"></i></button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function toggleNewClientModal() { document.getElementById('newClientModal').classList.toggle('hidden'); }
+
+        function createNewClient() {
+            const name = document.getElementById('newC_Name').value;
+            const project = document.getElementById('newC_Project').value;
+            if(!name || !project) return alert("برجاء إدخال الاسم والمشروع");
+
+            clientsDB.push({
+                id: Math.floor(1000 + Math.random() * 9000).toString(),
+                name: name, project: project, phone: document.getElementById('newC_Phone').value,
+                progress: document.getElementById('newC_Progress').value || 0,
+                idNumber: 'لم يحدد', contractStatus: 'جديد', paid: '0', owed: '0', 
+                photo: 'https://i.pravatar.cc/150?img=' + Math.floor(Math.random() * 70),
+                expenses: [], documents: []
+            });
+
+            saveDB(); renderDashboard(document.getElementById('mainSearchInput').value); toggleNewClientModal();
+            ['newC_Name', 'newC_Project', 'newC_Phone', 'newC_Progress'].forEach(id => document.getElementById(id).value = '');
+        }
+
+        /* =========================================
+           سلة المهملات (حذف، استرجاع، بحث)
+        ========================================= */
+        function requestDelete(cid) {
+            if(confirm('هل أنت متأكد من نقل العميل إلى سلة المهملات؟')) {
+                const index = clientsDB.findIndex(c => c.id === cid);
+                if(index > -1) {
+                    trashDB.push(clientsDB.splice(index, 1)[0]);
+                    saveDB(); renderDashboard(document.getElementById('mainSearchInput').value);
+                }
+            }
+        }
+
+        function openTrashModal() {
+            renderTrashTable();
+            document.getElementById('trashModal').classList.remove('hidden');
+        }
+
+        function renderTrashTable(searchQuery = '') {
+            const tbody = document.getElementById('trashTableBody');
+            tbody.innerHTML = '';
+            
+            const filteredTrash = trashDB.filter(client => {
+                const query = searchQuery.toLowerCase();
+                return client.name.toLowerCase().includes(query) || client.project.toLowerCase().includes(query);
+            });
+
+            if(filteredTrash.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-gray-500 font-bold">سلة المهملات فارغة</td></tr>`;
+                return;
+            }
+
+            filteredTrash.forEach(client => {
+                tbody.innerHTML += `
+                    <tr class="border-b border-gray-100 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-800 transition">
+                        <td class="p-4 font-bold">${client.name}</td>
+                        <td class="p-4 text-gray-500 dark:text-gray-400">${client.project}</td>
+                        <td class="p-4 flex gap-2 justify-end">
+                            <button onclick="restoreClient('${client.id}')" class="bg-green-100 text-green-600 dark:bg-green-900/30 px-3 py-2 rounded-lg text-sm font-bold hover:bg-green-500 hover:text-white transition" title="استرجاع"><i class="fas fa-rotate-left"></i></button>
+                            <button onclick="hardDeleteClient('${client.id}')" class="bg-red-100 text-red-600 dark:bg-red-900/30 px-3 py-2 rounded-lg text-sm font-bold hover:bg-red-600 hover:text-white transition" title="حذف نهائي"><i class="fas fa-times"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function restoreClient(cid) {
+            const index = trashDB.findIndex(c => c.id === cid);
+            if(index > -1) {
+                clientsDB.push(trashDB.splice(index, 1)[0]);
+                saveDB(); 
+                renderDashboard(document.getElementById('mainSearchInput').value);
+                renderTrashTable(document.getElementById('trashSearchInput').value);
+            }
+        }
+
+        function hardDeleteClient(cid) {
+            if(confirm('تحذير: الحذف النهائي لا يمكن التراجع عنه. هل أنت متأكد؟')) {
+                const index = trashDB.findIndex(c => c.id === cid);
+                if(index > -1) {
+                    trashDB.splice(index, 1);
+                    saveDB(); 
+                    renderTrashTable(document.getElementById('trashSearchInput').value);
+                }
+            }
+        }
+
+        function closeModals() {
+            document.getElementById('trashModal').classList.add('hidden');
+            document.getElementById('editValueModal').classList.add('hidden');
+            document.getElementById('addExpenseModal').classList.add('hidden');
+            document.getElementById('addDocumentModal').classList.add('hidden');
+        }
+
+        /* =========================================
+           صفحة تفاصيل العميل وإدارة بياناته
+        ========================================= */
+        function openClientPage(cid) {
+            activeClient = clientsDB.find(c => c.id === cid);
+            if(!activeClient) return;
+
+            document.getElementById('dashboard-wrapper').classList.add('page-hidden');
+            document.getElementById('client-wrapper').classList.remove('page-hidden');
+
+            updateClientDOM();
+            renderClientTables();
+        }
+
+        function backToDashboard() {
+            activeClient = null;
+            document.getElementById('client-wrapper').classList.add('page-hidden');
+            document.getElementById('dashboard-wrapper').classList.remove('page-hidden');
+            renderDashboard(document.getElementById('mainSearchInput').value);
+        }
+
+        function updateClientDOM() {
+            document.getElementById('clientNameText').innerText = activeClient.name;
+            document.getElementById('clientIdLabel').innerText = activeClient.id;
+            document.getElementById('clientPhoneText').innerText = activeClient.phone;
+            document.getElementById('clientIdText').innerText = activeClient.idNumber;
+            document.getElementById('projectNameText').innerText = activeClient.project;
+            document.getElementById('contractStatusText').innerText = activeClient.contractStatus;
+            document.getElementById('paidAmountText').innerText = activeClient.paid;
+            document.getElementById('owedAmountText').innerText = activeClient.owed;
+            document.getElementById('profileImage').src = activeClient.photo || 'https://i.pravatar.cc/150?img=11';
+        }
+
+        // تغيير صورة العميل
+        function previewImage(event) {
+            const file = event.target.files[0];
+            if (file && activeClient) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    activeClient.photo = e.target.result;
+                    document.getElementById('profileImage').src = activeClient.photo;
+                    saveDB();
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // التعديل السريع للبيانات
+        function requestEdit(field, type, title) {
+            currentEditField = field;
+            document.getElementById('editModalTitle').innerText = `تعديل ${title}`;
+            document.getElementById('newValueInput').type = type;
+            document.getElementById('newValueInput').value = activeClient[field];
+            document.getElementById('editValueModal').classList.remove('hidden');
+            document.getElementById('newValueInput').focus();
+        }
+
+        function saveNewValue() {
+            if(!activeClient || !currentEditField) return;
+            const newVal = document.getElementById('newValueInput').value;
+            activeClient[currentEditField] = newVal;
+            saveDB();
+            updateClientDOM();
+            closeModals();
+        }
+
+        /* الجداول الداخلية للعميل */
+        function renderClientTables() {
+            const expTbody = document.getElementById('expensesTableBody');
+            expTbody.innerHTML = '';
+            activeClient.expenses.forEach(exp => {
+                expTbody.innerHTML += `
+                    <tr class="border-b border-gray-100 dark:border-slate-700">
+                        <td class="p-3 font-bold">${exp.title}</td>
+                        <td class="p-3 text-gray-500">${exp.date}</td>
+                        <td class="p-3 text-green-600 font-bold">${exp.amount}</td>
+                    </tr>
+                `;
+            });
+
+            const docTbody = document.getElementById('documentsTableBody');
+            docTbody.innerHTML = '';
+            activeClient.documents.forEach(doc => {
+                docTbody.innerHTML += `
+                    <tr class="border-b border-gray-100 dark:border-slate-700">
+                        <td class="p-3 font-bold">${doc.name}</td>
+                        <td class="p-3 text-gray-500">${doc.by}</td>
+                        <td class="p-3 text-gray-500">${doc.date}</td>
+                        <td class="p-3 text-blue-500 font-bold">${doc.status}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        function saveExpense() {
+            if(!activeClient) return;
+            const title = document.getElementById('expTitle').value;
+            const date = document.getElementById('expDate').value;
+            const amount = document.getElementById('expAmount').value;
+            
+            if(title && date && amount) {
+                activeClient.expenses.push({title, date, amount});
+                saveDB();
+                renderClientTables();
+                closeModals();
+                ['expTitle', 'expDate', 'expAmount'].forEach(id => document.getElementById(id).value = '');
+            }
+        }
+
+        function saveDocument() {
+            if(!activeClient) return;
+            const name = document.getElementById('docName').value;
+            const by = document.getElementById('docBy').value;
+            const date = document.getElementById('docDate').value;
+            const status = document.getElementById('docStatus').value;
+            
+            if(name && by && date && status) {
+                activeClient.documents.push({name, by, date, status});
+                saveDB();
+                renderClientTables();
+                closeModals();
+                ['docName', 'docBy', 'docDate', 'docStatus'].forEach(id => document.getElementById(id).value = '');
+            }
+        }
+    </script>
+</body>
+</html>

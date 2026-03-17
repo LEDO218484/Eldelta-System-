@@ -1,0 +1,27 @@
+[
+  {
+    "id": "1773699527883",
+    "name": "ali",
+    "plot": "a",
+    "totalContract": 50000000000,
+    "paid": 51000000000,
+    "phone": "01000000000",
+    "expenses": [
+      {
+        "reason": "abc",
+        "amount": 1200,
+        "date": "2025-11-11"
+      }
+    ],
+    "tips": [],
+    "docs": [],
+    "pdfs": [
+      {
+        "originalName": "in life.pdf",
+        "filename": "1773756277928-41440457.pdf",
+        "date": "2026-03-17",
+        "path": "/files/1773756277928-41440457.pdf"
+      }
+    ]
+  }
+]

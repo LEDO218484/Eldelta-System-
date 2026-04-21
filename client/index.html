@@ -594,9 +594,30 @@
               </table>
             </div>
           </div>
+           <div class="bg-white dark:bg-slate-800 p-6 rounded-3xl border border-gray-100 dark:border-slate-700 shadow-sm flex flex-col transition-colors">
+          <div class="flex justify-between items-center mb-6">
+            <h3 class="font-black text-xl text-brand-dark dark:text-white flex items-center gap-2">
+              <i class="fa-solid fa-file-invoice-dollar text-green-600"></i> أرشيف الإيصالات
+            </h3>
+            <button onclick="document.getElementById('receiptFileInput').click()" class="bg-green-50 text-green-600 px-4 py-2 rounded-xl font-bold transition flex items-center gap-2">
+              <i class="fas fa-camera"></i> رفع إيصال
+            </button>
+            <input type="file" id="receiptFileInput" class="hidden" accept=".pdf, .jpg, .jpeg, .png" onchange="handleFileUpload(this, 'receipts')" />
+          </div>
+          <div class="overflow-y-auto max-h-64 pr-2">
+            <table class="w-full text-right text-sm">
+              <thead class="bg-gray-50 dark:bg-slate-700 sticky top-0">
+                <tr><th class="p-3 font-bold text-gray-500">البيان / الإيصال</th><th class="p-3 font-bold text-gray-500">التاريخ</th><th class="p-3 font-bold text-gray-500 text-center">الإجراء</th></tr>
+              </thead>
+              <tbody id="receiptTableBody"></tbody>
+            </table>
+          </div>
         </div>
-      </main>
-    </section>
+      </div>
+    </div>
+  </main>
+</section>
+     
 
     <!-- ========================================== -->
     <!-- MODALS & OVERLAYS                          -->

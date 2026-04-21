@@ -415,13 +415,35 @@ function renderClientDocuments() {
 
 function renderClientPDFs() {
   const pdfs = activeClient.pdfs || [];
-  document.getElementById("pdfTableBody").innerHTML = pdfs.length
-    ? pdfs
-        .map(
-          (p) => `
+  const container = document.getElementById("pdfTableBody");
+  if (!container) return;
+
+  container.innerHTML = pdfs.length
+    ? pdfs.map((p) => {
+          if (!p) return "";
+          
+          // 1. تحديد نوع الملف من الامتداد
+          const fileName = p.originalName || "";
+          const ext = fileName.split('.').pop().toLowerCase();
+          
+          // 2. اختيار الأيقونة واللون المناسب
+          let iconClass = "fa-file-alt text-gray-400"; // افتراضي (ملف عام)
+          
+          if (ext === "pdf") {
+            iconClass = "fa-file-pdf text-red-500";
+          } else if (["jpg", "jpeg", "png"].includes(ext)) {
+            iconClass = "fa-file-image text-blue-500";
+          } else if (ext === "dwg") {
+            iconClass = "fa-drafting-compass text-orange-500"; // أيقونة البرجل للمهندسين
+          }
+
+          return `
         <tr class="border-b border-gray-100 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-800 transition">
-          <td class="p-3 font-bold">${p.originalName}</td>
-          <td class="p-3 text-gray-500 text-xs">${p.date}</td>
+          <td class="p-3 font-bold flex items-center gap-3">
+            <i class="fas ${iconClass} text-xl w-6 text-center"></i>
+            <span>${fileName}</span>
+          </td>
+          <td class="p-3 text-gray-500 text-xs">${p.date || "---"}</td>
           <td class="p-3 text-center">
             <div class="flex gap-2 justify-center">
               <button onclick="previewUploadedPDF('${p.filename}', '${p.originalName}')" class="bg-blue-50 text-blue-600 dark:bg-blue-900/30 px-3 py-1 rounded-lg font-bold hover:bg-blue-500 hover:text-white transition flex items-center gap-1">
@@ -435,8 +457,8 @@ function renderClientPDFs() {
               </button>
             </div>
           </td>
-        </tr>`,
-        )
+        </tr>`;
+        })
         .join("")
     : `<tr><td colspan="3" class="p-6 text-center text-gray-400 font-bold">لا توجد ملفات مرفوعة</td></tr>`;
 }
@@ -452,7 +474,6 @@ function previewUploadedPDF(url, title) {
 }
 
 async function openPDFPreview(title, dataOrUrl) {
-  // Cancel any existing loading task
   if (currentPDFAbortController) {
     currentPDFAbortController.abort();
   }
@@ -462,7 +483,6 @@ async function openPDFPreview(title, dataOrUrl) {
   document.getElementById("pdfPreviewTitle").innerText = title;
   const container = document.getElementById("pdfViewerContainer");
 
-  // Show loading state
   container.innerHTML = `
     <div id="pdf-loader" class="flex flex-col items-center justify-center p-20">
       <i class="fas fa-circle-notch fa-spin fa-3x text-blue-500 mb-4"></i>
@@ -472,15 +492,14 @@ async function openPDFPreview(title, dataOrUrl) {
   document.getElementById("pdfPreviewModal").classList.remove("hidden");
 
   try {
-    let arrayBuffer;
+    let responseData;
+    let contentType = "";
 
+    // 1. جلب البيانات من السيرفر
     if (dataOrUrl instanceof ArrayBuffer || dataOrUrl instanceof Uint8Array) {
-      // If we already have the data (for generated statements)
-      arrayBuffer = dataOrUrl;
+      responseData = dataOrUrl;
+      contentType = "application/pdf";
     } else {
-      // If it's a URL/filename (for uploaded files), fetch via POST to bypass IDM
-      console.log("Fetching PDF via POST JSON bypass:", dataOrUrl);
-
       const response = await fetch("/api/pdf-data", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -489,94 +508,77 @@ async function openPDFPreview(title, dataOrUrl) {
       });
 
       const result = await response.json();
-      if (!result.success)
-        throw new Error(result.error || "Failed to fetch PDF data");
+      if (!result.success) throw new Error(result.error || "فشل في تحميل الملف");
 
-      // Convert base64 to ArrayBuffer
+      contentType = result.contentType;
+      
+      // تحويل الـ Base64 لـ Uint8Array
       const binaryString = window.atob(result.data);
       const len = binaryString.length;
       const bytes = new Uint8Array(len);
       for (let i = 0; i < len; i++) {
         bytes[i] = binaryString.charCodeAt(i);
       }
-      arrayBuffer = bytes.buffer;
+      responseData = bytes;
     }
 
     if (signal.aborted) return;
-    console.log(
-      "Received ArrayBuffer size:",
-      arrayBuffer ? arrayBuffer.byteLength : "null",
-      "bytes",
-    );
+    container.innerHTML = ""; 
+    container.className = "flex-1 bg-slate-800 overflow-y-auto p-4 flex flex-col items-center gap-4";
 
-    if (!arrayBuffer || arrayBuffer.byteLength === 0) {
-      throw new Error(
-        `The PDF file data is empty (0 bytes). View the console for response details.`,
-      );
-    }
+    // 2. منطق العرض حسب النوع (Switch Logic)
+    
+    // أ- لو الملف صورة (JPG, PNG)
+    if (contentType.startsWith("image/")) {
+      const blob = new Blob([responseData], { type: contentType });
+      const imageUrl = URL.createObjectURL(blob);
+      container.innerHTML = `<img src="${imageUrl}" class="max-w-full h-auto shadow-2xl rounded-lg bg-white">`;
+    } 
+    
+    // ب- لو الملف PDF
+    else if (contentType === "application/pdf") {
+      const pdfjsLib = window["pdfjs-dist/build/pdf"];
+      pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
 
-    // Initialize PDF.js
-    const pdfjsLib = window["pdfjs-dist/build/pdf"];
-    pdfjsLib.GlobalWorkerOptions.workerSrc =
-      "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+      const loadingTask = pdfjsLib.getDocument({ data: responseData.buffer || responseData });
+      const pdf = await loadingTask.promise;
 
-    // Load the document
-    const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
-    const pdf = await loadingTask.promise;
+      for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+        if (signal.aborted) return;
+        const page = await pdf.getPage(pageNum);
+        const viewport_orig = page.getViewport({ scale: 1.0 });
+        const scale = (container.clientWidth - 80) / viewport_orig.width;
+        const viewport = page.getViewport({ scale: Math.min(scale, 2.0) });
 
-    if (signal.aborted) return;
-    container.innerHTML = ""; // Clear loader
-    container.className =
-      "flex-1 bg-slate-800 overflow-y-auto p-4 flex flex-col items-center gap-4";
+        const canvas = document.createElement("canvas");
+        canvas.className = "shadow-2xl mb-8 mx-auto bg-white rounded-sm block";
+        const context = canvas.getContext("2d");
+        canvas.height = viewport.height;
+        canvas.width = viewport.width;
 
-    // Render pages
-    for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-      if (signal.aborted) return;
-      const page = await pdf.getPage(pageNum);
-
-      const viewport_orig = page.getViewport({ scale: 1.0 });
-      const scale = (container.clientWidth - 80) / viewport_orig.width;
-      const viewport = page.getViewport({ scale: Math.min(scale, 2.0) });
-
-      const canvas = document.createElement("canvas");
-      canvas.className = "shadow-2xl mb-8 mx-auto bg-white rounded-sm block";
-      const context = canvas.getContext("2d");
-      canvas.height = viewport.height;
-      canvas.width = viewport.width;
-
-      await page.render({
-        canvasContext: context,
-        viewport: viewport,
-      }).promise;
-
-      if (!signal.aborted) {
+        await page.render({ canvasContext: context, viewport: viewport }).promise;
         container.appendChild(canvas);
       }
-    }
-  } catch (err) {
-    if (err.name === "AbortError") {
-      console.log("PDF loading aborted");
-      return;
-    }
-    console.error("PDF Preview Error:", err);
-    const directUrl =
-      typeof dataOrUrl === "string"
-        ? dataOrUrl.startsWith("/")
-          ? dataOrUrl
-          : `/files/${dataOrUrl}`
-        : "#";
-    container.innerHTML = `
-      <div class="flex flex-col items-center justify-center p-10 text-center">
-        <i class="fas fa-exclamation-triangle text-5xl mb-4 text-red-500"></i>
-        <h3 class="text-xl font-bold mb-4 dark:text-white">تعذر عرض الملف</h3>
-        <p class="mb-2 text-red-500 font-mono text-sm">${err.message}</p>
-        <p class="mb-6 opacity-75 dark:text-gray-300">قد يكون هناك مشكلة في تحميل البيانات أو أن الملف تالف.</p>
-        <div class="flex gap-4">
-          <a href="${directUrl}" target="_blank" class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-xl font-bold ${typeof dataOrUrl !== "string" ? "hidden" : ""}">فتح الملف مباشرة</a>
-          <button onclick="closePDFPreview()" class="bg-gray-200 dark:bg-gray-700 dark:text-white px-8 py-3 rounded-xl font-bold">إغلاق</button>
+    } 
+    
+    // ج- لو ملف DWG أو غير مدعوم للمعاينة
+    else {
+      container.innerHTML = `
+        <div class="flex flex-col items-center justify-center p-20 text-center text-white">
+          <i class="fas fa-file-contract text-6xl mb-6 text-dash-accent"></i>
+          <h3 class="text-2xl font-black mb-2">ملف مخطط (DWG)</h3>
+          <p class="text-gray-400 max-w-md">ملفات الأوتوكاد لا تدعم المعاينة المباشرة في المتصفح. يمكنك تحميل الملف لفتحه بواسطة البرنامج المختص.</p>
+          <button onclick="downloadPDF('/files/${dataOrUrl}', '${title}')" class="mt-8 bg-dash-accent hover:bg-orange-600 text-white px-10 py-4 rounded-2xl font-black transition shadow-lg flex items-center gap-3">
+             <i class="fas fa-download"></i> تحميل الملف الآن
+          </button>
         </div>
-      </div>
-    `;
+      `;
+    }
+
+  } catch (err) {
+    if (err.name === "AbortError") return;
+    console.error("Preview Error:", err);
+    container.innerHTML = `<div class="text-red-500 p-10 font-bold text-center">خطأ في المعاينة: ${err.message}</div>`;
   }
 }
 
@@ -642,32 +644,34 @@ function downloadPDF(url, originalName) {
   document.body.removeChild(link);
 }
 
-function deletePDF(clientId, filename) {
+async function deletePDF(clientId, filename) {
+  // التأكد من المستخدم قبل الحذف
   showConfirmModal(
-    "حذف الملف",
-    "هل أنت متأكد من حذف هذا الملف نهائياً؟",
+    "تأكيد الحذف",
+    "هل أنت متأكد من حذف هذا المستند نهائياً؟",
     async () => {
       try {
-        const res = await fetch("/api/delete-pdf", {
-          method: "DELETE",
+        const response = await fetch("/api/delete-pdf", {
+          method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ clientId, filename }),
         });
-        const data = await res.json();
-        if (data.success) {
-          activeClient.pdfs = activeClient.pdfs.filter(
-            (p) => p.filename !== filename,
-          );
-          renderClientPDFs();
-          loadDB(); // التزامن مع سيرفر
+
+        const result = await response.json();
+
+        if (result.success) {
+          // تحديث البيانات محلياً بعد الحذف الناجح
+          activeClient.pdfs = activeClient.pdfs.filter(p => p.filename !== filename);
+          saveDB(); // حفظ التغييرات في ملف الـ JSON
+          updateClientDOM(); // إعادة رسم الجدول
         } else {
-          alert("فشل حذف الملف: " + data.error);
+          alert("فشل الحذف: " + (result.error || "خطأ غير معروف"));
         }
       } catch (err) {
         console.error("Delete error:", err);
-        alert("حدث خطأ أثناء اتصال السيرفر");
+        alert("حدث خطأ أثناء الاتصال بالسيرفر لحذف الملف");
       }
-    },
+    }
   );
 }
 
@@ -675,13 +679,16 @@ async function handleFileUpload(input) {
   const file = input.files[0];
   if (!file || !activeClient) return;
 
-  if (file.type !== "application/pdf") {
-    alert("يرجى اختيار ملف PDF فقط");
+  // التحقق من الامتدادات المسموحة (PDF, DWG, الصور)
+  const allowedExtensions = /(\.pdf|\.dwg|\.jpg|\.jpeg|\.png)$/i;
+  if (!allowedExtensions.exec(file.name)) {
+    alert("نوع الملف غير مدعوم! مسموح فقط بـ PDF و DWG والصور.");
+    input.value = ""; 
     return;
   }
 
   const formData = new FormData();
-  formData.append("pdf", file);
+  formData.append("pdf", file); // بنسيبها pdf هنا عشان الـ Multer في السيرفر مستنيها بالاسم ده
   formData.append("clientId", activeClient.id);
 
   try {
@@ -693,10 +700,14 @@ async function handleFileUpload(input) {
 
     if (data.success) {
       if (!activeClient.pdfs) activeClient.pdfs = [];
-      activeClient.pdfs.push(data.pdf);
+      
+      // التعديل هنا: بنقرأ data.file اللي جاية من السيرفر، ولو مش موجودة بنجرب data.pdf للضمان
+      const newFile = data.file || data.pdf;
+      activeClient.pdfs.push(newFile);
+      
       renderClientPDFs();
-      // تشغيل تحميل البيانات مرة أخرى للتزامن الكامل
-      loadDB();
+      saveDB(); // مهم جداً تسيف الحالة الجديدة
+      // alert("تم رفع الملف بنجاح");
     } else {
       alert("فشل رفع الملف: " + data.error);
     }
@@ -704,7 +715,7 @@ async function handleFileUpload(input) {
     console.error("Upload error:", err);
     alert("حدث خطأ أثناء الرفع");
   } finally {
-    input.value = ""; // تصفير المدخل
+    input.value = ""; 
   }
 }
 

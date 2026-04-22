@@ -88,7 +88,7 @@ async function handleRestore(input) {
             "تمت استعادة البيانات بنجاح! سيتم إعادة تحميل الصفحة الآن.",
             () => window.location.reload(),
             false,
-            "green"
+            "green",
           );
         } else {
           showConfirmModal(
@@ -96,7 +96,7 @@ async function handleRestore(input) {
             "خطأ: " + (result.error || "فشل غير متوقع في معالجة الملف."),
             () => {},
             true,
-            "red"
+            "red",
           );
         }
       } catch (err) {
@@ -106,14 +106,14 @@ async function handleRestore(input) {
           "حدث خطأ أثناء محاولة الاتصال بالخادم لاستعادة البيانات.",
           () => {},
           true,
-          "red"
+          "red",
         );
       } finally {
         input.value = "";
       }
     },
     true,
-    "blue"
+    "blue",
   );
 }
 
@@ -205,7 +205,7 @@ function createNewClient() {
       tips: [],
       docs: [],
       pdfs: [],
-      receipts: []
+      receipts: [],
     };
     clientsDB.push(newClient);
     saveDB();
@@ -238,7 +238,7 @@ function restoreClient(id) {
     clientsDB.push(trashDB.splice(idx, 1)[0]);
     saveDB();
     renderDashboard();
-    openTrashModal(); 
+    openTrashModal();
   }
 }
 
@@ -283,19 +283,37 @@ function openClientPage(id) {
 function updateClientDOM() {
   if (!activeClient) return;
   document.getElementById("clientNameText").innerText = activeClient.name;
-  document.getElementById("clientPlotText").innerText = "قطعة: " + activeClient.plot;
-  document.getElementById("clientPhoneText").innerText = activeClient.phone || "لا يوجد";
-  document.getElementById("totalContractText").innerText = activeClient.totalContract.toLocaleString();
+  document.getElementById("clientPlotText").innerText =
+    "قطعة: " + activeClient.plot;
+  document.getElementById("clientPhoneText").innerText =
+    activeClient.phone || "لا يوجد";
+  document.getElementById("totalContractText").innerText =
+    activeClient.totalContract.toLocaleString();
 
   const payments = activeClient.payments || [];
-  const totalPaidFromHistory = payments.reduce((acc, p) => acc + parseFloat(p.amount), 0);
-  const effectivePaid = payments.length > 0 ? totalPaidFromHistory + activeClient.paid : activeClient.paid || 0;
-  const expenses = (activeClient.expenses || []).reduce((acc, e) => acc + parseFloat(e.amount), 0);
+  const totalPaidFromHistory = payments.reduce(
+    (acc, p) => acc + parseFloat(p.amount),
+    0,
+  );
+  const effectivePaid =
+    payments.length > 0
+      ? totalPaidFromHistory + activeClient.paid
+      : activeClient.paid || 0;
+  const expenses = (activeClient.expenses || []).reduce(
+    (acc, e) => acc + parseFloat(e.amount),
+    0,
+  );
 
-  document.getElementById("paidAmountText").innerText = (effectivePaid - expenses).toLocaleString();
+  document.getElementById("paidAmountText").innerText = (
+    effectivePaid - expenses
+  ).toLocaleString();
 
-  const totalTips = (activeClient.tips || []).reduce((acc, t) => acc + parseFloat(t.amount), 0);
-  document.getElementById("owedAmountText").innerText = totalTips.toLocaleString();
+  const totalTips = (activeClient.tips || []).reduce(
+    (acc, t) => acc + parseFloat(t.amount),
+    0,
+  );
+  document.getElementById("owedAmountText").innerText =
+    totalTips.toLocaleString();
 
   // رندر الجداول
   renderClientExpenses();
@@ -312,39 +330,53 @@ function renderClientPayments() {
 
   const payments = activeClient.payments || [];
   container.innerHTML = payments.length
-    ? payments.map((p) => `
+    ? payments
+        .map(
+          (p) => `
         <tr class="border-b border-gray-100 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-800 transition">
           <td class="p-3 font-bold">${p.receiver || "---"}</td>
           <td class="p-3 text-gray-500 text-xs">${p.date || "---"}</td>
           <td class="p-3 text-green-600 font-bold">+${parseFloat(p.amount).toLocaleString()} ج.م</td>
-        </tr>`).join("")
+        </tr>`,
+        )
+        .join("")
     : `<tr><td colspan="3" class="p-4 text-center text-gray-400">لا توجد مدفوعات مسجلة</td></tr>`;
 }
 
 function renderClientExpenses() {
   const expenses = activeClient.expenses || [];
-  document.getElementById("expensesTableBody").innerHTML = expenses.map((e) => `
+  document.getElementById("expensesTableBody").innerHTML = expenses
+    .map(
+      (e) => `
         <tr class="border-b border-gray-100 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-800 transition">
           <td class="p-3 font-bold">${e.reason}</td>
           <td class="p-3 text-gray-500 text-xs">${e.date || "---"}</td>
           <td class="p-3 text-red-500 font-bold">-${e.amount} ج.م</td>
-        </tr>`).join("");
+        </tr>`,
+    )
+    .join("");
 }
 
 function renderClientTips() {
   const tips = activeClient.tips || [];
-  document.getElementById("tipsTableBody").innerHTML = tips.map((t) => `
+  document.getElementById("tipsTableBody").innerHTML = tips
+    .map(
+      (t) => `
         <tr class="border-b border-gray-100 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-800 transition">
           <td class="p-3 font-bold">${t.reason}</td>
           <td class="p-3 text-gray-500 dark:text-gray-400 text-xs">${t.payer}</td>
           <td class="p-3 text-gray-500 text-xs">${t.date || "---"}</td>
           <td class="p-3 text-orange-600 font-bold">+${t.amount} ج.م</td>
-        </tr>`).join("");
+        </tr>`,
+    )
+    .join("");
 }
 
 function renderClientDocuments() {
   const docs = activeClient.docs || [];
-  document.getElementById("documentsTableBody").innerHTML = docs.map((d, i) => `
+  document.getElementById("documentsTableBody").innerHTML = docs
+    .map(
+      (d, i) => `
         <tr class="border-b border-gray-100 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-800 transition">
           <td class="p-4 font-bold text-brand-primary dark:text-gray-200">${d.person}</td>
           <td class="p-4">${d.name}</td>
@@ -354,7 +386,9 @@ function renderClientDocuments() {
           <td class="p-4">
             <button onclick="editDoc(${i})" class="bg-blue-50 text-blue-600 dark:bg-blue-900/30 px-3 py-1 rounded-lg font-bold hover:bg-blue-100 transition"><i class="fas fa-pen"></i> تعديل</button>
           </td>
-        </tr>`).join("");
+        </tr>`,
+    )
+    .join("");
 }
 
 function renderClientPDFs() {
@@ -363,14 +397,17 @@ function renderClientPDFs() {
   if (!container) return;
 
   container.innerHTML = pdfs.length
-    ? pdfs.map((p) => {
+    ? pdfs
+        .map((p) => {
           if (!p) return "";
           const fileName = p.originalName || "";
-          const ext = fileName.split('.').pop().toLowerCase();
+          const ext = fileName.split(".").pop().toLowerCase();
           let iconClass = "fa-file-alt text-gray-400";
           if (ext === "pdf") iconClass = "fa-file-pdf text-red-500";
-          else if (["jpg", "jpeg", "png"].includes(ext)) iconClass = "fa-file-image text-blue-500";
-          else if (ext === "dwg") iconClass = "fa-drafting-compass text-orange-500";
+          else if (["jpg", "jpeg", "png"].includes(ext))
+            iconClass = "fa-file-image text-blue-500";
+          else if (ext === "dwg")
+            iconClass = "fa-drafting-compass text-orange-500";
 
           return `
         <tr class="border-b border-gray-100 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-800 transition">
@@ -387,7 +424,8 @@ function renderClientPDFs() {
             </div>
           </td>
         </tr>`;
-        }).join("")
+        })
+        .join("")
     : `<tr><td colspan="3" class="p-6 text-center text-gray-400 font-bold">لا توجد ملفات مرفوعة</td></tr>`;
 }
 
@@ -397,8 +435,11 @@ function renderReceipts() {
   if (!container || !activeClient) return;
 
   const receipts = activeClient.receipts || [];
-  
-  container.innerHTML = receipts.length ? receipts.map((r) => `
+
+  container.innerHTML = receipts.length
+    ? receipts
+        .map(
+          (r) => `
       <tr class="border-b border-gray-100 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-800 transition">
         <td class="p-3 font-bold flex items-center gap-3">
           <i class="fas fa-file-invoice-dollar text-green-500 text-xl w-6 text-center"></i>
@@ -412,7 +453,10 @@ function renderReceipts() {
             <button onclick="deletePDF('${activeClient.id}', '${r.filename}', 'receipts')" class="bg-red-50 text-red-600 p-2 rounded-lg hover:bg-red-500 hover:text-white transition"><i class="fas fa-trash"></i></button>
           </div>
         </td>
-      </tr>`).join("") : `<tr><td colspan="3" class="p-6 text-center text-gray-400 font-bold">لا توجد إيصالات</td></tr>`;
+      </tr>`,
+        )
+        .join("")
+    : `<tr><td colspan="3" class="p-6 text-center text-gray-400 font-bold">لا توجد إيصالات</td></tr>`;
 }
 
 /**
@@ -421,60 +465,68 @@ function renderReceipts() {
  * ==========================================
  */
 async function handleFileUpload(input, type) {
-    const file = input.files[0];
-    if (!file) return;
+  const file = input.files[0];
+  if (!file) return;
 
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("clientId", activeClient.id);
-    formData.append("fileType", type);
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("clientId", activeClient.id);
+  formData.append("fileType", type);
 
-    try {
-        const res = await fetch("/api/upload", { method: "POST", body: formData });
-        const result = await res.json();
+  try {
+    const res = await fetch("/api/upload", { method: "POST", body: formData });
+    const result = await res.json();
 
-        if (result.success) {
-            if (type === 'receipts') {
-                if (!activeClient.receipts) activeClient.receipts = [];
-                activeClient.receipts.push(result.file);
-                renderReceipts();
-            } else {
-                if (!activeClient.pdfs) activeClient.pdfs = [];
-                activeClient.pdfs.push(result.file);
-                renderClientPDFs();
-            }
-            // alert("تم الرفع بنجاح");
-        }
-    } catch (err) {
-        console.error(err);
-        alert("فشل الرفع");
-    } finally {
-        input.value = "";
+    if (result.success) {
+      if (type === "receipts") {
+        if (!activeClient.receipts) activeClient.receipts = [];
+        activeClient.receipts.push(result.file);
+        renderReceipts();
+      } else {
+        if (!activeClient.pdfs) activeClient.pdfs = [];
+        activeClient.pdfs.push(result.file);
+        renderClientPDFs();
+      }
+      // alert("تم الرفع بنجاح");
     }
+  } catch (err) {
+    console.error(err);
+    alert("فشل الرفع");
+  } finally {
+    input.value = "";
+  }
 }
 
-async function deletePDF(clientId, filename, type = 'pdfs') {
-  showConfirmModal("تأكيد الحذف", "هل أنت متأكد من حذف هذا الملف؟", async () => {
-    try {
-      const res = await fetch("/api/delete-pdf", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ clientId, filename, type }),
-      });
-      const result = await res.json();
-      if (result.success) {
-        if (type === 'receipts') {
-          activeClient.receipts = activeClient.receipts.filter(p => p.filename !== filename);
-          renderReceipts();
-        } else {
-          activeClient.pdfs = activeClient.pdfs.filter(p => p.filename !== filename);
-          renderClientPDFs();
+async function deletePDF(clientId, filename, type = "pdfs") {
+  showConfirmModal(
+    "تأكيد الحذف",
+    "هل أنت متأكد من حذف هذا الملف؟",
+    async () => {
+      try {
+        const res = await fetch("/api/delete-pdf", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ clientId, filename, type }),
+        });
+        const result = await res.json();
+        if (result.success) {
+          if (type === "receipts") {
+            activeClient.receipts = activeClient.receipts.filter(
+              (p) => p.filename !== filename,
+            );
+            renderReceipts();
+          } else {
+            activeClient.pdfs = activeClient.pdfs.filter(
+              (p) => p.filename !== filename,
+            );
+            renderClientPDFs();
+          }
         }
+      } catch (err) {
+        console.error(err);
       }
-    } catch (err) {
-      console.error(err);
-    }
-  });
+    },
+  );
 }
 
 function downloadPDF(url, originalName) {
@@ -512,7 +564,8 @@ async function openPDFPreview(title, dataOrUrl) {
 
     const binaryString = window.atob(result.data);
     const bytes = new Uint8Array(binaryString.length);
-    for (let i = 0; i < binaryString.length; i++) bytes[i] = binaryString.charCodeAt(i);
+    for (let i = 0; i < binaryString.length; i++)
+      bytes[i] = binaryString.charCodeAt(i);
 
     container.innerHTML = "";
     if (result.contentType.startsWith("image/")) {
@@ -520,24 +573,27 @@ async function openPDFPreview(title, dataOrUrl) {
       container.innerHTML = `<img src="${URL.createObjectURL(blob)}" class="max-w-full h-auto rounded-lg">`;
     } else if (result.contentType === "application/pdf") {
       const pdfjsLib = window["pdfjs-dist/build/pdf"];
-      pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+      pdfjsLib.GlobalWorkerOptions.workerSrc =
+        "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
       const pdf = await pdfjsLib.getDocument({ data: bytes }).promise;
       for (let i = 1; i <= pdf.numPages; i++) {
         const page = await pdf.getPage(i);
         const viewport = page.getViewport({ scale: 1.5 });
         const canvas = document.createElement("canvas");
         canvas.className = "mb-4 shadow-lg bg-white";
-       const context = canvas.getContext("2d");
+        const context = canvas.getContext("2d");
         canvas.height = viewport.height;
         canvas.width = viewport.width;
-        await page.render({ canvasContext: context, viewport: viewport }).promise;
+        await page.render({ canvasContext: context, viewport: viewport })
+          .promise;
         container.appendChild(canvas);
       }
     } else {
       container.innerHTML = `<div class="text-white text-center p-10"><i class="fas fa-file-download text-5xl mb-4"></i><p>هذا الملف لا يدعم المعاينة، يمكنك تحميله.</p></div>`;
     }
   } catch (err) {
-    if (err.name !== "AbortError") container.innerHTML = `<div class="text-red-500 p-10">خطأ في التحميل</div>`;
+    if (err.name !== "AbortError")
+      container.innerHTML = `<div class="text-red-500 p-10">خطأ في التحميل</div>`;
   }
 }
 
@@ -584,7 +640,12 @@ function addNewMoney() {
   const date = document.getElementById("inNewMoneyDate").value;
   if (receiver && amount) {
     if (!activeClient.payments) activeClient.payments = [];
-    activeClient.payments.push({ id: Date.now().toString(), receiver, amount, date });
+    activeClient.payments.push({
+      id: Date.now().toString(),
+      receiver,
+      amount,
+      date,
+    });
     saveDB();
     updateClientDOM();
     closeSubModal();
@@ -599,7 +660,13 @@ function addDoc() {
   const d = document.getElementById("inDocDate").value;
   if (p && n) {
     if (!activeClient.docs) activeClient.docs = [];
-    activeClient.docs.push({ person: p, name: n, purpose: g, place: l, date: d });
+    activeClient.docs.push({
+      person: p,
+      name: n,
+      purpose: g,
+      place: l,
+      date: d,
+    });
     saveDB();
     updateClientDOM();
     closeModals();
@@ -609,6 +676,7 @@ function addDoc() {
 function showSubModal(type, docIdx = null) {
   const div = document.getElementById("subModalContent");
   const modal = document.getElementById("subModal");
+
   if (type === "exp") {
     div.innerHTML = `<h3 class="font-black text-2xl mb-6 dark:text-white text-center">إضافة مصروف</h3><div class="space-y-4 mb-6"><input id="in1" class="w-full px-4 py-2 rounded-xl border-2 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 dark:text-white" placeholder="البيان" /><input id="in2" type="number" class="w-full px-4 py-2 rounded-xl border-2 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 dark:text-white" placeholder="المبلغ" /><input id="inExpDate" type="date" class="w-full px-4 py-2 rounded-xl border-2 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 dark:text-white" /></div><button onclick="addExp()" class="w-full bg-red-500 text-white py-3 rounded-xl font-black text-lg shadow-lg hover:bg-red-600">تسجيل وحفظ</button>`;
   } else if (type === "tip") {
@@ -616,10 +684,24 @@ function showSubModal(type, docIdx = null) {
   } else if (type === "newMoney") {
     div.innerHTML = `<h3 class="font-black text-2xl mb-6 dark:text-white text-center">إضافة مبلغ جديد</h3><div class="space-y-4 mb-6"><input id="in2" class="w-full px-4 py-2 rounded-xl border-2 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 dark:text-white" placeholder="من استلم؟" /><input id="in3" type="number" class="w-full px-4 py-2 rounded-xl border-2 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 dark:text-white" placeholder="المبلغ" /><input id="inNewMoneyDate" type="date" class="w-full px-4 py-2 rounded-xl border-2 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 dark:text-white" /></div><button onclick="addNewMoney()" class="w-full bg-orange-500 text-white py-3 rounded-xl font-black text-lg shadow-lg hover:bg-orange-600">تسجيل وحفظ</button>`;
   }
+  // الجزء الجديد اللي كان ناقصك لحركة الورق
+  else if (type === "doc") {
+    div.innerHTML = `
+      <h3 class="font-black text-2xl mb-6 dark:text-white text-center">إضافة حركة ورق</h3>
+      <div class="space-y-4 mb-6">
+        <input id="docAction" class="w-full px-4 py-2 rounded-xl border-2 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 dark:text-white" placeholder="نوع الحركة (استلام/تسليم)" />
+        <input id="docUser" class="w-full px-4 py-2 rounded-xl border-2 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 dark:text-white" placeholder="اسم المستلم/المسلم" />
+        <input id="docDate" type="date" class="w-full px-4 py-2 rounded-xl border-2 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 dark:text-white" />
+      </div>
+      <button onclick="addDocMovement()" class="w-full bg-blue-500 text-white py-3 rounded-xl font-black text-lg shadow-lg hover:bg-blue-600">حفظ الحركة</button>`;
+  }
+
   modal.classList.remove("hidden");
 }
 
-function closeSubModal() { document.getElementById("subModal").classList.add("hidden"); }
+function closeSubModal() {
+  document.getElementById("subModal").classList.add("hidden");
+}
 function closeModals() {
   document.getElementById("subModal").classList.add("hidden");
   document.getElementById("editValueModal").classList.add("hidden");
@@ -631,26 +713,41 @@ function closeModals() {
 function toggleDarkMode() {
   document.documentElement.classList.toggle("dark");
   const icon = document.getElementById("themeIcon");
-  if (document.documentElement.classList.contains("dark")) icon.classList.replace("fa-moon", "fa-sun");
+  if (document.documentElement.classList.contains("dark"))
+    icon.classList.replace("fa-moon", "fa-sun");
   else icon.classList.replace("fa-sun", "fa-moon");
 }
 
-function toggleNewClientModal() { document.getElementById("newClientModal").classList.toggle("hidden"); }
+function toggleNewClientModal() {
+  document.getElementById("newClientModal").classList.toggle("hidden");
+}
 
 function openTrashModal() {
   const list = document.getElementById("trashList");
-  list.innerHTML = trashDB.length ? trashDB.map((c) => `
+  list.innerHTML = trashDB.length
+    ? trashDB
+        .map(
+          (c) => `
         <div class="flex justify-between items-center bg-gray-50 dark:bg-slate-700 p-4 rounded-xl border border-gray-100 dark:border-slate-600 mb-3">
             <span class="font-bold dark:text-white">${c.name} - ${c.plot}</span>
             <div class="flex gap-2">
               <button onclick="restoreClient('${c.id}')" class="text-green-600 bg-green-50 px-4 py-2 rounded-lg font-bold">استعادة</button>
               <button onclick="permanentDeleteClient('${c.id}')" class="text-red-600 bg-red-50 px-4 py-2 rounded-lg font-bold">حذف نهائي</button>
             </div>
-        </div>`).join("") : "<p class='text-center text-gray-500 py-6'>السلة فارغة</p>";
+        </div>`,
+        )
+        .join("")
+    : "<p class='text-center text-gray-500 py-6'>السلة فارغة</p>";
   document.getElementById("trashModal").classList.remove("hidden");
 }
 
-function showConfirmModal(title, message, onConfirm, showCancel = true, type = "red") {
+function showConfirmModal(
+  title,
+  message,
+  onConfirm,
+  showCancel = true,
+  type = "red",
+) {
   document.getElementById("confirmTitle").innerText = title;
   document.getElementById("confirmMessage").innerText = message;
   const confirmBtn = document.getElementById("confirmBtn");
@@ -659,7 +756,12 @@ function showConfirmModal(title, message, onConfirm, showCancel = true, type = "
   document.getElementById("confirmModal").classList.remove("hidden");
   const newBtn = confirmBtn.cloneNode(true);
   confirmBtn.parentNode.replaceChild(newBtn, confirmBtn);
-  newBtn.addEventListener("click", () => { onConfirm(); closeConfirmModal(); });
+  newBtn.addEventListener("click", () => {
+    onConfirm();
+    closeConfirmModal();
+  });
 }
 
-function closeConfirmModal() { document.getElementById("confirmModal").classList.add("hidden"); }
+function closeConfirmModal() {
+  document.getElementById("confirmModal").classList.add("hidden");
+}

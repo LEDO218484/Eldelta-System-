@@ -746,6 +746,7 @@ function showSubModal(type, docIdx = null) {
 function closeSubModal() {
   document.getElementById("subModal").classList.add("hidden");
 }
+
 function closeModals() {
   document.getElementById("subModal").classList.add("hidden");
   document.getElementById("editValueModal").classList.add("hidden");

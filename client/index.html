@@ -10,7 +10,10 @@
 
     <!-- Icons & Fonts -->
     <link rel="icon" id="dynamic-favicon" href="images/Eldelta-main-logo.jpg" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
@@ -131,8 +134,14 @@
             >
               <i class="fas fa-file-import"></i> استعادة
             </button>
-            <input type="file" id="restoreInput" class="hidden" accept=".zip" onchange="handleRestore(this)" />
-            
+            <input
+              type="file"
+              id="restoreInput"
+              class="hidden"
+              accept=".zip"
+              onchange="handleRestore(this)"
+            />
+
             <button
               onclick="openTrashModal()"
               class="bg-red-50 dark:bg-red-900/30 text-red-500 px-6 py-4 rounded-2xl font-black flex items-center gap-3"
@@ -234,7 +243,6 @@
           </div>
         </div>
       </aside>
-
       <!-- Main Content: Financials & Docs -->
       <main class="flex-1 overflow-y-auto p-8 relative">
         <header
@@ -248,8 +256,8 @@
               إدارة الشؤون المالية والمستندات
             </p>
           </div>
-          <button 
-            onclick="previewStatementPDF()" 
+          <button
+            onclick="previewStatementPDF()"
             class="bg-brand-gold text-white px-6 py-3 rounded-2xl font-black flex items-center gap-2 hover:bg-yellow-600 transition shadow-lg"
           >
             <i class="fas fa-file-invoice-dollar"></i> معاينة كشف الحساب
@@ -337,287 +345,316 @@
 
         <div id="financials-capture-area">
           <!-- Tables Grid -->
-        <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
-          <!-- Expenses -->
-          <div
-            class="bg-white dark:bg-slate-800 p-6 rounded-3xl border border-gray-100 dark:border-slate-700 shadow-sm flex flex-col transition-colors"
-          >
-            <div class="flex justify-between items-center mb-6">
-              <h3
-                class="font-black text-xl text-brand-dark dark:text-white flex items-center gap-2"
-              >
-                <i class="fas fa-receipt text-brand-gold"></i> المصروفات (تخصم
-                من الأصل)
-              </h3>
-              <button
-                onclick="showSubModal('exp')"
-                class="text-sm bg-gray-50 dark:bg-slate-700 dark:text-gray-200 text-gray-600 px-3 py-1 rounded-lg font-bold hover:bg-gray-200 transition"
-              >
-                إضافة +
-              </button>
-            </div>
-            <div class="overflow-y-auto max-h-64 flex-1 pr-2">
-              <table class="w-full text-right text-sm">
-                <thead class="bg-gray-50 dark:bg-slate-700 sticky top-0">
-                  <tr>
-                    <th
-                      class="p-3 text-sm font-bold text-gray-500 dark:text-gray-300 rounded-r-lg"
-                    >
-                      البيان
-                    </th>
-                    <th
-                      class="p-3 text-sm font-bold text-gray-500 dark:text-gray-300"
-                    >
-                      التاريخ
-                    </th>
-                    <th
-                      class="p-3 text-sm font-bold text-gray-500 dark:text-gray-300 rounded-l-lg"
-                    >
-                      المبلغ
-                    </th>
-                  </tr>
-                </thead>
-                <tbody
-                  id="expensesTableBody"
-                  class="dark:text-gray-200"
-                ></tbody>
-              </table>
-            </div>
-          </div>
-
-          <!-- Tips -->
-
-          <div
-            class="bg-white dark:bg-slate-800 p-6 rounded-3xl border border-gray-100 dark:border-slate-700 shadow-sm flex flex-col transition-colors"
-          >
-            <div class="flex justify-between items-center mb-6">
-              <h3
-                class="font-black text-xl text-brand-dark dark:text-white flex items-center gap-2"
-              >
-                <i class="fas fa-hand-holding-heart text-brand-gold"></i>
-                إكراميات المصالح (تضاف للدين)
-              </h3>
-              <button
-                onclick="showSubModal('tip')"
-                class="text-sm bg-orange-50 dark:bg-orange-900/30 text-orange-600 px-3 py-1 rounded-lg font-bold hover:bg-orange-100 transition"
-              >
-                إضافة +
-              </button>
-            </div>
-            <div class="overflow-y-auto max-h-64 flex-1 pr-2">
-              <table class="w-full text-right text-sm">
-                <thead class="bg-gray-50 dark:bg-slate-700 sticky top-0">
-                  <tr>
-                    <th
-                      class="p-3 text-sm font-bold text-gray-500 dark:text-gray-300 rounded-r-lg"
-                    >
-                      المصلحة
-                    </th>
-                    <th
-                      class="p-3 text-sm font-bold text-gray-500 dark:text-gray-300"
-                    >
-                      من سدد؟
-                    </th>
-                    <th
-                      class="p-3 text-sm font-bold text-gray-500 dark:text-gray-300"
-                    >
-                      التاريخ
-                    </th>
-                    <th
-                      class="p-3 text-sm font-bold text-gray-500 dark:text-gray-300 rounded-l-lg"
-                    >
-                      المبلغ
-                    </th>
-                  </tr>
-                </thead>
-                <tbody id="tipsTableBody" class="dark:text-gray-200"></tbody>
-              </table>
-            </div>
-          </div>
-
-          <!-- المدخلات الجديده للعميل  -->
-
-          <div
-            class="bg-white dark:bg-slate-800 p-6 rounded-3xl border border-gray-100 dark:border-slate-700 shadow-sm flex flex-col transition-colors"
-          >
-            <div class="flex justify-between items-center mb-6">
-              <h3
-                class="font-black text-xl text-brand-dark dark:text-white flex items-center gap-2"
-              >
-                <i class="fas fa-hand-holding-heart text-brand-gold"></i>
-                مدخلات العميل الى المكتب
-              </h3>
-              <button
-                onclick="showSubModal('newMoney')"
-                class="text-sm bg-orange-50 dark:bg-orange-900/30 text-orange-600 px-3 py-1 rounded-lg font-bold hover:bg-orange-100 transition"
-              >
-                إضافة +
-              </button>
-            </div>
-            <div class="overflow-y-auto max-h-64 flex-1 pr-2">
-              <table class="w-full text-right text-sm">
-                <thead class="bg-gray-50 dark:bg-slate-700 sticky top-0">
-                  <tr>
-                    <th
-                      class="p-3 text-sm font-bold text-gray-500 dark:text-gray-300"
-                    >
-                      من استلم؟
-                    </th>
-                    <th
-                      class="p-3 text-sm font-bold text-gray-500 dark:text-gray-300"
-                    >
-                      التاريخ
-                    </th>
-                    <th
-                      class="p-3 text-sm font-bold text-gray-500 dark:text-gray-300 rounded-l-lg"
-                    >
-                      المبلغ
-                    </th>
-                  </tr>
-                </thead>
-                <tbody id="newMoneyToOffice" class="dark:text-gray-200"></tbody>
-              </table>
-            </div>
-          </div>
-
-          <!-- Documents -->
-          <div
-            class="bg-white dark:bg-slate-800 p-6 rounded-3xl border border-gray-100 dark:border-slate-700 shadow-sm flex flex-col transition-colors"
-          >
-            <div class="flex justify-between items-center mb-6">
-              <h3
-                class="font-black text-xl text-brand-dark dark:text-white flex items-center gap-2"
-              >
-                <i class="fas fa-file-export text-blue-500"></i> تتبع حركة الورق
-              </h3>
-              <button
-                onclick="showSubModal('doc')"
-                class="text-sm bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-3 py-1 rounded-lg font-bold hover:bg-blue-100 transition"
-              >
-                إضافة حركة +
-              </button>
-            </div>
-            <div class="overflow-y-auto max-h-64 flex-1 pr-2">
-              <table class="w-full text-right text-sm">
-                <thead class="bg-gray-50 dark:bg-slate-700 sticky top-0">
-                  <tr>
-                    <th
-                      class="p-3 text-sm font-bold text-gray-500 dark:text-gray-300 rounded-r-lg"
-                    >
-                      المستلم
-                    </th>
-                    <th
-                      class="p-3 text-sm font-bold text-gray-500 dark:text-gray-300"
-                    >
-                      الورقة
-                    </th>
-                    <th
-                      class="p-3 text-sm font-bold text-gray-500 dark:text-gray-300"
-                    >
-                      الغرض
-                    </th>
-                    <th
-                      class="p-3 text-sm font-bold text-gray-500 dark:text-gray-300"
-                    >
-                      المكان
-                    </th>
-                    <th
-                      class="p-3 text-sm font-bold text-gray-500 dark:text-gray-300"
-                    >
-                      التاريخ
-                    </th>
-                    <th
-                      class="p-3 text-sm font-bold text-gray-500 dark:text-gray-300 rounded-l-lg"
-                    >
-                      الإجراء
-                    </th>
-                  </tr>
-                </thead>
-                <tbody
-                  id="documentsTableBody"
-                  class="dark:text-gray-200"
-                ></tbody>
-              </table>
-            </div>
-          </div>
-
-          <!-- PDF Management Section -->
-          <div
-            class="bg-white dark:bg-slate-800 p-6 rounded-3xl border border-gray-100 dark:border-slate-700 shadow-sm flex flex-col transition-colors"
-          >
-            <div class="flex justify-between items-center mb-6">
-              <h3
-                class="font-black text-xl text-brand-dark dark:text-white flex items-center gap-2"
-              >
-               <i class="fa-solid fa-file-zipper" style="color: rgb(227, 61, 12);"></i> أرشيف ملفات
-              </h3>
-              <div>
-                <button
-                  onclick="document.getElementById('pdfFileInput').click()"
-                  class="bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 px-4 py-2 rounded-xl font-bold hover:bg-red-100 transition flex items-center gap-2"
+          <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+            <!-- Expenses -->
+            <div
+              class="bg-white dark:bg-slate-800 p-6 rounded-3xl border border-gray-100 dark:border-slate-700 shadow-sm flex flex-col transition-colors"
+            >
+              <div class="flex justify-between items-center mb-6">
+                <h3
+                  class="font-black text-xl text-brand-dark dark:text-white flex items-center gap-2"
                 >
-                  <i class="fas fa-upload"></i> رفع ملف جديد
+                  <i class="fas fa-receipt text-brand-gold"></i> المصروفات (تخصم
+                  من الأصل)
+                </h3>
+                <button
+                  onclick="showSubModal('exp')"
+                  class="text-sm bg-gray-50 dark:bg-slate-700 dark:text-gray-200 text-gray-600 px-3 py-1 rounded-lg font-bold hover:bg-gray-200 transition"
+                >
+                  إضافة +
                 </button>
-              <input
-               type="file"
-  id="pdfFileInput"
-  class="hidden"
-  accept=".pdf, .dwg, .jpg, .jpeg, .png"
-  onchange="handleFileUpload(this)"
-/>
+              </div>
+              <div class="overflow-y-auto max-h-64 flex-1 pr-2">
+                <table class="w-full text-right text-sm">
+                  <thead class="bg-gray-50 dark:bg-slate-700 sticky top-0">
+                    <tr>
+                      <th
+                        class="p-3 text-sm font-bold text-gray-500 dark:text-gray-300 rounded-r-lg"
+                      >
+                        البيان
+                      </th>
+                      <th
+                        class="p-3 text-sm font-bold text-gray-500 dark:text-gray-300"
+                      >
+                        التاريخ
+                      </th>
+                      <th
+                        class="p-3 text-sm font-bold text-gray-500 dark:text-gray-300 rounded-l-lg"
+                      >
+                        المبلغ
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody
+                    id="expensesTableBody"
+                    class="dark:text-gray-200"
+                  ></tbody>
+                </table>
               </div>
             </div>
-            <div class="overflow-y-auto max-h-64 flex-1 pr-2">
-              <table class="w-full text-right text-sm">
-                <thead class="bg-gray-50 dark:bg-slate-700 sticky top-0">
-                  <tr>
-                    <th
-                      class="p-3 text-sm font-bold text-gray-500 dark:text-gray-300 rounded-r-lg"
-                    >
-                      اسم الملف
-                    </th>
-                    <th
-                      class="p-3 text-sm font-bold text-gray-500 dark:text-gray-300"
-                    >
-                      تاريخ الرفع
-                    </th>
-                    <th
-                      class="p-3 text-sm font-bold text-gray-500 dark:text-gray-300 rounded-l-lg text-center"
-                    >
-                      الإجراءات
-                    </th>
-                  </tr>
-                </thead>
-                <tbody id="pdfTableBody" class="dark:text-gray-200">
-                  <!-- PDF items will be rendered here -->
-                </tbody>
-              </table>
+
+            <!-- Tips -->
+
+            <div
+              class="bg-white dark:bg-slate-800 p-6 rounded-3xl border border-gray-100 dark:border-slate-700 shadow-sm flex flex-col transition-colors"
+            >
+              <div class="flex justify-between items-center mb-6">
+                <h3
+                  class="font-black text-xl text-brand-dark dark:text-white flex items-center gap-2"
+                >
+                  <i class="fas fa-hand-holding-heart text-brand-gold"></i>
+                  إكراميات المصالح (تضاف للدين)
+                </h3>
+                <button
+                  onclick="showSubModal('tip')"
+                  class="text-sm bg-orange-50 dark:bg-orange-900/30 text-orange-600 px-3 py-1 rounded-lg font-bold hover:bg-orange-100 transition"
+                >
+                  إضافة +
+                </button>
+              </div>
+              <div class="overflow-y-auto max-h-64 flex-1 pr-2">
+                <table class="w-full text-right text-sm">
+                  <thead class="bg-gray-50 dark:bg-slate-700 sticky top-0">
+                    <tr>
+                      <th
+                        class="p-3 text-sm font-bold text-gray-500 dark:text-gray-300 rounded-r-lg"
+                      >
+                        المصلحة
+                      </th>
+                      <th
+                        class="p-3 text-sm font-bold text-gray-500 dark:text-gray-300"
+                      >
+                        من سدد؟
+                      </th>
+                      <th
+                        class="p-3 text-sm font-bold text-gray-500 dark:text-gray-300"
+                      >
+                        التاريخ
+                      </th>
+                      <th
+                        class="p-3 text-sm font-bold text-gray-500 dark:text-gray-300 rounded-l-lg"
+                      >
+                        المبلغ
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody id="tipsTableBody" class="dark:text-gray-200"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- المدخلات الجديده للعميل  -->
+
+            <div
+              class="bg-white dark:bg-slate-800 p-6 rounded-3xl border border-gray-100 dark:border-slate-700 shadow-sm flex flex-col transition-colors"
+            >
+              <div class="flex justify-between items-center mb-6">
+                <h3
+                  class="font-black text-xl text-brand-dark dark:text-white flex items-center gap-2"
+                >
+                  <i class="fas fa-hand-holding-heart text-brand-gold"></i>
+                  مدخلات العميل الى المكتب
+                </h3>
+                <button
+                  onclick="showSubModal('newMoney')"
+                  class="text-sm bg-orange-50 dark:bg-orange-900/30 text-orange-600 px-3 py-1 rounded-lg font-bold hover:bg-orange-100 transition"
+                >
+                  إضافة +
+                </button>
+              </div>
+              <div class="overflow-y-auto max-h-64 flex-1 pr-2">
+                <table class="w-full text-right text-sm">
+                  <thead class="bg-gray-50 dark:bg-slate-700 sticky top-0">
+                    <tr>
+                      <th
+                        class="p-3 text-sm font-bold text-gray-500 dark:text-gray-300"
+                      >
+                        من استلم؟
+                      </th>
+                      <th
+                        class="p-3 text-sm font-bold text-gray-500 dark:text-gray-300"
+                      >
+                        التاريخ
+                      </th>
+                      <th
+                        class="p-3 text-sm font-bold text-gray-500 dark:text-gray-300 rounded-l-lg"
+                      >
+                        المبلغ
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody
+                    id="newMoneyToOffice"
+                    class="dark:text-gray-200"
+                  ></tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Documents -->
+            <div
+              class="bg-white dark:bg-slate-800 p-6 rounded-3xl border border-gray-100 dark:border-slate-700 shadow-sm flex flex-col transition-colors"
+            >
+              <div class="flex justify-between items-center mb-6">
+                <h3
+                  class="font-black text-xl text-brand-dark dark:text-white flex items-center gap-2"
+                >
+                  <i class="fas fa-file-export text-blue-500"></i> تتبع حركة
+                  الورق
+                </h3>
+                <button
+                  onclick="showSubModal('doc')"
+                  class="text-sm bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-3 py-1 rounded-lg font-bold hover:bg-blue-100 transition"
+                >
+                  إضافة حركة +
+                </button>
+              </div>
+              <div class="overflow-y-auto max-h-64 flex-1 pr-2">
+                <table class="w-full text-right text-sm">
+                  <thead class="bg-gray-50 dark:bg-slate-700 sticky top-0">
+                    <tr>
+                      <th
+                        class="p-3 text-sm font-bold text-gray-500 dark:text-gray-300 rounded-r-lg"
+                      >
+                        المستلم
+                      </th>
+                      <th
+                        class="p-3 text-sm font-bold text-gray-500 dark:text-gray-300"
+                      >
+                        الورقة
+                      </th>
+                      <th
+                        class="p-3 text-sm font-bold text-gray-500 dark:text-gray-300"
+                      >
+                        الغرض
+                      </th>
+                      <th
+                        class="p-3 text-sm font-bold text-gray-500 dark:text-gray-300"
+                      >
+                        المكان
+                      </th>
+                      <th
+                        class="p-3 text-sm font-bold text-gray-500 dark:text-gray-300"
+                      >
+                        التاريخ
+                      </th>
+                      <th
+                        class="p-3 text-sm font-bold text-gray-500 dark:text-gray-300 rounded-l-lg"
+                      >
+                        الإجراء
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody
+                    id="documentsTableBody"
+                    class="dark:text-gray-200"
+                  ></tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- PDF Management Section -->
+            <div
+              class="bg-white dark:bg-slate-800 p-6 rounded-3xl border border-gray-100 dark:border-slate-700 shadow-sm flex flex-col transition-colors"
+            >
+              <div class="flex justify-between items-center mb-6">
+                <h3
+                  class="font-black text-xl text-brand-dark dark:text-white flex items-center gap-2"
+                >
+                  <i
+                    class="fa-solid fa-file-zipper"
+                    style="color: rgb(227, 61, 12)"
+                  ></i>
+                  أرشيف ملفات
+                </h3>
+                <div>
+                  <button
+                    onclick="document.getElementById('pdfFileInput').click()"
+                    class="bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 px-4 py-2 rounded-xl font-bold hover:bg-red-100 transition flex items-center gap-2"
+                  >
+                    <i class="fas fa-upload"></i> رفع ملف جديد
+                  </button>
+                  <input
+                    type="file"
+                    id="pdfFileInput"
+                    class="hidden"
+                    accept=".pdf, .dwg, .jpg, .jpeg, .png"
+                    onchange="handleFileUpload(this)"
+                  />
+                </div>
+              </div>
+              <div class="overflow-y-auto max-h-64 flex-1 pr-2">
+                <table class="w-full text-right text-sm">
+                  <thead class="bg-gray-50 dark:bg-slate-700 sticky top-0">
+                    <tr>
+                      <th
+                        class="p-3 text-sm font-bold text-gray-500 dark:text-gray-300 rounded-r-lg"
+                      >
+                        اسم الملف
+                      </th>
+                      <th
+                        class="p-3 text-sm font-bold text-gray-500 dark:text-gray-300"
+                      >
+                        تاريخ الرفع
+                      </th>
+                      <th
+                        class="p-3 text-sm font-bold text-gray-500 dark:text-gray-300 rounded-l-lg text-center"
+                      >
+                        الإجراءات
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody id="pdfTableBody" class="dark:text-gray-200">
+                    <!-- PDF items will be rendered here -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div
+              class="bg-white dark:bg-slate-800 p-6 rounded-3xl border border-gray-100 dark:border-slate-700 shadow-sm flex flex-col transition-colors"
+            >
+              <div class="flex justify-between items-center mb-6">
+                <h3
+                  class="font-black text-xl text-brand-dark dark:text-white flex items-center gap-2"
+                >
+                  <i class="fa-solid fa-file-invoice-dollar text-green-600"></i>
+                  أرشيف الإيصالات
+                </h3>
+                <button
+                  onclick="document.getElementById('receiptFileInput').click()"
+                  class="bg-green-50 text-green-600 px-4 py-2 rounded-xl font-bold transition flex items-center gap-2"
+                >
+                  <i class="fas fa-camera"></i> رفع إيصال
+                </button>
+                <input
+                  type="file"
+                  id="receiptFileInput"
+                  class="hidden"
+                  accept=".pdf, .jpg, .jpeg, .png"
+                  onchange="handleFileUpload(this, 'receipts')"
+                />
+              </div>
+              <div class="overflow-y-auto max-h-64 pr-2">
+                <table class="w-full text-right text-sm">
+                  <thead class="bg-gray-50 dark:bg-slate-700 sticky top-0">
+                    <tr>
+                      <th class="p-3 font-bold text-gray-500">
+                        البيان / الإيصال
+                      </th>
+                      <th class="p-3 font-bold text-gray-500">التاريخ</th>
+                      <th class="p-3 font-bold text-gray-500 text-center">
+                        الإجراء
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody id="receiptTableBody"></tbody>
+                </table>
+              </div>
             </div>
           </div>
-           <div class="bg-white dark:bg-slate-800 p-6 rounded-3xl border border-gray-100 dark:border-slate-700 shadow-sm flex flex-col transition-colors">
-          <div class="flex justify-between items-center mb-6">
-            <h3 class="font-black text-xl text-brand-dark dark:text-white flex items-center gap-2">
-              <i class="fa-solid fa-file-invoice-dollar text-green-600"></i> أرشيف الإيصالات
-            </h3>
-            <button onclick="document.getElementById('receiptFileInput').click()" class="bg-green-50 text-green-600 px-4 py-2 rounded-xl font-bold transition flex items-center gap-2">
-              <i class="fas fa-camera"></i> رفع إيصال
-            </button>
-            <input type="file" id="receiptFileInput" class="hidden" accept=".pdf, .jpg, .jpeg, .png" onchange="handleFileUpload(this, 'receipts')" />
-          </div>
-          <div class="overflow-y-auto max-h-64 pr-2">
-            <table class="w-full text-right text-sm">
-              <thead class="bg-gray-50 dark:bg-slate-700 sticky top-0">
-                <tr><th class="p-3 font-bold text-gray-500">البيان / الإيصال</th><th class="p-3 font-bold text-gray-500">التاريخ</th><th class="p-3 font-bold text-gray-500 text-center">الإجراء</th></tr>
-              </thead>
-              <tbody id="receiptTableBody"></tbody>
-            </table>
-          </div>
         </div>
-      </div>
-    </div>
-  </main>
-</section>
-     
+      </main>
+    </section>
 
     <!-- ========================================== -->
     <!-- MODALS & OVERLAYS                          -->
@@ -801,7 +838,10 @@
         </button>
       </div>
       <!-- PDF Viewer Container -->
-      <div class="flex-1 bg-slate-900 overflow-y-auto p-4 flex flex-col items-center gap-4" id="pdfViewerContainer">
+      <div
+        class="flex-1 bg-slate-900 overflow-y-auto p-4 flex flex-col items-center gap-4"
+        id="pdfViewerContainer"
+      >
         <!-- Canvas elements will be rendered here by pdf.js -->
       </div>
     </div>

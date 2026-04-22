@@ -675,28 +675,72 @@ function addDoc() {
 
 function showSubModal(type, docIdx = null) {
   const div = document.getElementById("subModalContent");
-  const modal = document.getElementById("subModal");
-
   if (type === "exp") {
-    div.innerHTML = `<h3 class="font-black text-2xl mb-6 dark:text-white text-center">إضافة مصروف</h3><div class="space-y-4 mb-6"><input id="in1" class="w-full px-4 py-2 rounded-xl border-2 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 dark:text-white" placeholder="البيان" /><input id="in2" type="number" class="w-full px-4 py-2 rounded-xl border-2 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 dark:text-white" placeholder="المبلغ" /><input id="inExpDate" type="date" class="w-full px-4 py-2 rounded-xl border-2 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 dark:text-white" /></div><button onclick="addExp()" class="w-full bg-red-500 text-white py-3 rounded-xl font-black text-lg shadow-lg hover:bg-red-600">تسجيل وحفظ</button>`;
-  } else if (type === "tip") {
-    div.innerHTML = `<h3 class="font-black text-2xl mb-6 dark:text-white text-center">إضافة إكرامية</h3><div class="space-y-4 mb-6"><input id="in1" class="w-full px-4 py-2 rounded-xl border-2 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 dark:text-white" placeholder="المصلحة" /><input id="in2" class="w-full px-4 py-2 rounded-xl border-2 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 dark:text-white" placeholder="من سدد؟" /><input id="in3" type="number" class="w-full px-4 py-2 rounded-xl border-2 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 dark:text-white" placeholder="المبلغ" /><input id="inTipDate" type="date" class="w-full px-4 py-2 rounded-xl border-2 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 dark:text-white" /></div><button onclick="addTip()" class="w-full bg-orange-500 text-white py-3 rounded-xl font-black text-lg shadow-lg hover:bg-orange-600">تسجيل وحفظ</button>`;
-  } else if (type === "newMoney") {
-    div.innerHTML = `<h3 class="font-black text-2xl mb-6 dark:text-white text-center">إضافة مبلغ جديد</h3><div class="space-y-4 mb-6"><input id="in2" class="w-full px-4 py-2 rounded-xl border-2 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 dark:text-white" placeholder="من استلم؟" /><input id="in3" type="number" class="w-full px-4 py-2 rounded-xl border-2 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 dark:text-white" placeholder="المبلغ" /><input id="inNewMoneyDate" type="date" class="w-full px-4 py-2 rounded-xl border-2 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 dark:text-white" /></div><button onclick="addNewMoney()" class="w-full bg-orange-500 text-white py-3 rounded-xl font-black text-lg shadow-lg hover:bg-orange-600">تسجيل وحفظ</button>`;
-  }
-  // الجزء الجديد اللي كان ناقصك لحركة الورق
-  else if (type === "doc") {
     div.innerHTML = `
-      <h3 class="font-black text-2xl mb-6 dark:text-white text-center">إضافة حركة ورق</h3>
+      <h3 class="font-black text-2xl mb-6 dark:text-white text-center">إضافة مصروف</h3>
       <div class="space-y-4 mb-6">
-        <input id="docAction" class="w-full px-4 py-2 rounded-xl border-2 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 dark:text-white" placeholder="نوع الحركة (استلام/تسليم)" />
-        <input id="docUser" class="w-full px-4 py-2 rounded-xl border-2 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 dark:text-white" placeholder="اسم المستلم/المسلم" />
-        <input id="docDate" type="date" class="w-full px-4 py-2 rounded-xl border-2 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 dark:text-white" />
+        <input id="in1" class="w-full px-4 py-2 rounded-xl border-2 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 dark:text-white" placeholder="البيان" />
+        <input id="in2" type="number" class="w-full px-4 py-2 rounded-xl border-2 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 dark:text-white" placeholder="المبلغ" />
+        <input id="inExpDate" type="date" class="w-full px-4 py-2 rounded-xl border-2 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 dark:text-white" />
       </div>
-      <button onclick="addDocMovement()" class="w-full bg-blue-500 text-white py-3 rounded-xl font-black text-lg shadow-lg hover:bg-blue-600">حفظ الحركة</button>`;
+      <button onclick="addExp()" class="w-full bg-red-500 text-white py-3 rounded-xl font-black text-lg shadow-lg hover:bg-red-600">تسجيل وحفظ</button>
+    `;
+    document.getElementById("subModal").firstElementChild.className =
+      "bg-white dark:bg-slate-800 p-8 rounded-3xl shadow-2xl w-96 text-right relative border-t-4 border-red-500";
   }
+  // الاكراميات
+  else if (type === "tip") {
+    div.innerHTML = `
+      <h3 class="font-black text-2xl mb-6 dark:text-white text-center">إضافة إكرامية</h3>
+      <div class="space-y-4 mb-6">
+        <input id="in1" class="w-full px-4 py-2 rounded-xl border-2 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 dark:text-white" placeholder="المصلحة" />
+        <input id="in2" class="w-full px-4 py-2 rounded-xl border-2 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 dark:text-white" placeholder="من سدد؟" />
+        <input id="in3" type="number" class="w-full px-4 py-2 rounded-xl border-2 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 dark:text-white" placeholder="المبلغ" />
+        <input id="inTipDate" type="date" class="w-full px-4 py-2 rounded-xl border-2 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 dark:text-white" />
+      </div>
+      <button onclick="addTip()" class="w-full bg-orange-500 text-white py-3 rounded-xl font-black text-lg shadow-lg hover:bg-orange-600">تسجيل وحفظ</button>
+    `;
+    document.getElementById("subModal").firstElementChild.className =
+      "bg-white dark:bg-slate-800 p-8 rounded-3xl shadow-2xl w-96 text-right relative border-t-4 border-orange-500";
+  }
+  // اضافه مبلغ جديد من العميل
+  else if (type === "newMoney") {
+    div.innerHTML = `
+      <h3 class="font-black text-2xl mb-6 dark:text-white text-center">إضافة مبلغ جديد</h3>
+      <div class="space-y-4 mb-6">
+        <input id="in2" class="w-full px-4 py-2 rounded-xl border-2 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 dark:text-white" placeholder="من استلم؟" />
+        <input id="in3" type="number" class="w-full px-4 py-2 rounded-xl border-2 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 dark:text-white" placeholder="المبلغ" />
+        <input id="inNewMoneyDate" type="date" class="w-full px-4 py-2 rounded-xl border-2 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 dark:text-white" />
+      </div>
+      <button onclick="addNewMoney()" class="w-full bg-orange-500 text-white py-3 rounded-xl font-black text-lg shadow-lg hover:bg-orange-600">تسجيل وحفظ</button>
+    `;
+    document.getElementById("subModal").firstElementChild.className =
+      "bg-white dark:bg-slate-800 p-8 rounded-3xl shadow-2xl w-96 text-right relative border-t-4 border-orange-500";
+  }
+  // حركة مستند
+  else if (type === "doc") {
+    const isEdit = docIdx !== null;
+    const doc = isEdit
+      ? activeClient.docs[docIdx]
+      : { person: "", name: "", purpose: "", place: "", date: "" };
 
-  modal.classList.remove("hidden");
+    div.innerHTML = `
+      <h3 class="font-black text-2xl mb-6 dark:text-white text-center">${isEdit ? "تعديل مستند" : "حركة مستند"}</h3>
+      <div class="space-y-4 mb-6">
+        <input id="in1" class="w-full px-4 py-2 rounded-xl border-2 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 dark:text-white" placeholder="المستلم" value="${doc.person}" />
+        <input id="in2" class="w-full px-4 py-2 rounded-xl border-2 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 dark:text-white" placeholder="اسم الورقة" value="${doc.name}" />
+        <input id="in3" class="w-full px-4 py-2 rounded-xl border-2 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 dark:text-white" placeholder="الغرض" value="${doc.purpose}" />
+        <input id="in4" class="w-full px-4 py-2 rounded-xl border-2 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 dark:text-white" placeholder="المكان" value="${doc.place}" />
+        <input id="inDocDate" type="date" class="w-full px-4 py-2 rounded-xl border-2 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 dark:text-white" value="${doc.date}" />
+      </div>
+      <button onclick="${isEdit ? `saveEditDoc(${docIdx})` : "addDoc()"}" class="w-full bg-blue-600 text-white py-3 rounded-xl font-black text-lg shadow-lg hover:bg-blue-700">
+        ${isEdit ? "حفظ التعديلات" : "تسجيل وحفظ"}
+      </button>
+    `;
+    document.getElementById("subModal").firstElementChild.className =
+      "bg-white dark:bg-slate-800 p-8 rounded-3xl shadow-2xl w-96 text-right relative border-t-4 border-blue-500";
+  }
+  document.getElementById("subModal").classList.remove("hidden");
 }
 
 function closeSubModal() {
